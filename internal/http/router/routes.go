@@ -14,8 +14,9 @@ func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
 	AuthRoutes(app.Group("/auth"), di.AuthHandler)
 
 	me := app.Group("/me")
-	me.Use(middleware.Auth(di.Jwt, "silver"))
-	me.Get("/", func(c *fiber.Ctx) error { return c.JSON(fiber.Map{"status": "ok"}) })
+	me.Use(middleware.Auth(di.Jwt), "silver", "gold", "admin")
+
+	UserRoutes(me, di.UserHandler)
 
 	banner := app.Group("/banners")
 	banner.Use(middleware.Auth(di.Jwt, "admin"))

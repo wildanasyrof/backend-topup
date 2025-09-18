@@ -17,6 +17,7 @@ type DI struct {
 	DB          *gorm.DB
 	Jwt         jwt.JWTService
 	AuthHandler *handler.AuthHandler
+	UserHandler *handler.UserHandler
 }
 
 func InitDI(cfg *config.Config) *DI {
@@ -29,10 +30,14 @@ func InitDI(cfg *config.Config) *DI {
 	authService := service.NewAuthService(userRepo, jwt)
 	authHandler := handler.NewAuthHandler(authService, validator)
 
+	userService := service.NewUserService(userRepo)
+	userHandler := handler.NewUserHandler(userService)
+
 	return &DI{
 		Logger:      logger,
 		DB:          DB,
 		Jwt:         jwt,
 		AuthHandler: authHandler,
+		UserHandler: userHandler,
 	}
 }
