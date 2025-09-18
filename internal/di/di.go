@@ -15,6 +15,7 @@ import (
 type DI struct {
 	Logger      logger.Logger
 	DB          *gorm.DB
+	Jwt         jwt.JWTService
 	AuthHandler *handler.AuthHandler
 }
 
@@ -31,6 +32,7 @@ func InitDI(cfg *config.Config) *DI {
 	return &DI{
 		Logger:      logger,
 		DB:          DB,
+		Jwt:         jwt,
 		AuthHandler: authHandler,
 	}
 }

@@ -12,7 +12,7 @@ import (
 
 type AuthService interface {
 	Register(req *dto.RegisterUserRequest) (*entity.User, error)
-	Login(req *dto.LoginUserRequest) (*entity.User, error)
+	Login(req *dto.LoginUserRequest) (*entity.User, string, error)
 }
 
 type authService struct {
@@ -28,18 +28,23 @@ func NewAuthService(userRepository repository.UserRepository, jwtService jwt.JWT
 }
 
 // Login implements AuthService.
-func (a *authService) Login(req *dto.LoginUserRequest) (*entity.User, error) {
+func (a *authService) Login(req *dto.LoginUserRequest) (*entity.User, string, error) {
 	user, err := a.userRepository.GetByEmail(req.Email)
 
 	if err != nil && user == nil {
-		return nil, errors.New("invalid credential")
+		return nil, "", errors.New("invalid credential")
 	}
 
 	if err := hash.ComparePassword(user.PasswordHash, req.Password); err != nil {
-		return nil, errors.New("invalid credential")
+		return nil, "", errors.New("invalid credential")
 	}
 
-	return user, nil
+	token, err := a.GenerateToken(user.ID, user.Role)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return user, token.AccessToken, nil
 
 }
 
@@ -58,4 +63,15 @@ func (a *authService) Register(req *dto.RegisterUserRequest) (*entity.User, erro
 	}
 
 	return user, nil
+}
+
+func (a *authService) GenerateToken(id uint64, role string) (*dto.TokenResponse, error) {
+	accessToken, err := a.jwtService.GenerateAccessToken(id, role)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.TokenResponse{
+		AccessToken: accessToken,
+	}, nil
 }

@@ -37,7 +37,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	if err != nil {
 		errMsg := err.Error()
 
-		if strings.Contains(errMsg, "idx_users_email") {
+		if strings.Contains(errMsg, "uni_users_email") {
 			return response.Error(c, fiber.StatusConflict, "Registration failed", fiber.Map{
 				"message": "Email already exists",
 				"field":   "email",
@@ -62,10 +62,13 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "validation error", err)
 	}
 
-	user, err := h.authService.Login(&req)
+	user, token, err := h.authService.Login(&req)
 	if err != nil {
 		return response.Error(c, fiber.StatusUnauthorized, "login failed", err.Error())
 	}
 
-	return response.Success(c, "login success", user)
+	return response.Success(c, "login success", fiber.Map{
+		"user":  user,
+		"token": token,
+	})
 }
