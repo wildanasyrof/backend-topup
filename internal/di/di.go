@@ -13,12 +13,13 @@ import (
 )
 
 type DI struct {
-	Logger      logger.Logger
-	DB          *gorm.DB
-	Jwt         jwt.JWTService
-	AuthHandler *handler.AuthHandler
-	UserHandler *handler.UserHandler
-	MenuHandler *handler.MenuHandler
+	Logger          logger.Logger
+	DB              *gorm.DB
+	Jwt             jwt.JWTService
+	AuthHandler     *handler.AuthHandler
+	UserHandler     *handler.UserHandler
+	MenuHandler     *handler.MenuHandler
+	SettingsHandler *handler.SettingsHandler
 }
 
 func InitDI(cfg *config.Config) *DI {
@@ -38,12 +39,17 @@ func InitDI(cfg *config.Config) *DI {
 	menuService := service.NewMenuService(menuRepo)
 	menuHandler := handler.NewMenuHandler(menuService, validator)
 
+	settingsRepo := repository.NewSettingsRepository(DB)
+	settingsService := service.NewSettingsService(settingsRepo)
+	settingsHandler := handler.NewSettingsHandler(settingsService, validator)
+
 	return &DI{
-		Logger:      logger,
-		DB:          DB,
-		Jwt:         jwt,
-		AuthHandler: authHandler,
-		UserHandler: userHandler,
-		MenuHandler: menuHandler,
+		Logger:          logger,
+		DB:              DB,
+		Jwt:             jwt,
+		AuthHandler:     authHandler,
+		UserHandler:     userHandler,
+		MenuHandler:     menuHandler,
+		SettingsHandler: settingsHandler,
 	}
 }

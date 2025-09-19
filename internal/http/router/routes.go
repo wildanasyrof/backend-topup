@@ -20,6 +20,10 @@ func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
 	menu := app.Group("/menus")
 	MenuRoutes(menu, di.MenuHandler, di)
 
+	settings := app.Group("/settings")
+	settings.Use(middleware.Auth(di.Jwt, "admin"))
+	SettingsRoutes(settings, di.SettingsHandler)
+
 	banner := app.Group("/banners")
 	banner.Use(middleware.Auth(di.Jwt, "admin"))
 	banner.Get("/", func(c *fiber.Ctx) error { return c.JSON(fiber.Map{"status": "ok"}) })
