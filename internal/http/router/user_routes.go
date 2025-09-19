@@ -7,4 +7,5 @@ import (
 
 func UserRoutes(r fiber.Router, userHandler *handler.UserHandler) {
 	r.Get("/", userHandler.GetProfile)
+	r.Put("/", userHandler.Update)
 }

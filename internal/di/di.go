@@ -31,7 +31,7 @@ func InitDI(cfg *config.Config) *DI {
 	authHandler := handler.NewAuthHandler(authService, validator)
 
 	userService := service.NewUserService(userRepo)
-	userHandler := handler.NewUserHandler(userService)
+	userHandler := handler.NewUserHandler(userService, validator)
 
 	return &DI{
 		Logger:      logger,

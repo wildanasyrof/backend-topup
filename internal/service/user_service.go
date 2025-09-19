@@ -30,5 +30,22 @@ func (s *userService) GetUserByID(id uint64) (*entity.User, error) {
 
 // update implements UserService.
 func (s *userService) Update(userID uint64, req *dto.UpdateUserRequest) (*entity.User, error) {
-	panic("unimplemented")
+	user, err := s.userRepository.GetByID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if req.Name != nil {
+		user.Name = *req.Name
+	}
+
+	if req.Whatsapp != nil {
+		user.Whatsapp = *req.Whatsapp
+	}
+
+	if err := s.userRepository.Update(user); err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
