@@ -8,6 +8,7 @@ import (
 	"github.com/wildanasyrof/backend-topup/internal/service"
 	"github.com/wildanasyrof/backend-topup/pkg/jwt"
 	logger "github.com/wildanasyrof/backend-topup/pkg/logger"
+	"github.com/wildanasyrof/backend-topup/pkg/storage"
 	"github.com/wildanasyrof/backend-topup/pkg/validator"
 	"gorm.io/gorm"
 )
@@ -16,6 +17,7 @@ type DI struct {
 	Logger                logger.Logger
 	DB                    *gorm.DB
 	Jwt                   jwt.JWTService
+	Storage               storage.LocalStorage
 	AuthHandler           *handler.AuthHandler
 	UserHandler           *handler.UserHandler
 	MenuHandler           *handler.MenuHandler
@@ -28,6 +30,7 @@ func InitDI(cfg *config.Config) *DI {
 	DB := db.Connect(cfg, logger)
 	validator := validator.NewValidator()
 	jwt := jwt.NewJWTService(cfg)
+	storage := storage.NewLocalStorage(cfg)
 
 	userRepo := repository.NewUserRepository(DB)
 	authService := service.NewAuthService(userRepo, jwt)
@@ -46,12 +49,13 @@ func InitDI(cfg *config.Config) *DI {
 
 	paymentMethodRepo := repository.NewPaymentMethodsRepository(DB)
 	paymentMethodService := service.NewPaymentMethodsService(paymentMethodRepo)
-	paymentMethodsHandler := handler.NewPaymentMethodsHandler(paymentMethodService, validator)
+	paymentMethodsHandler := handler.NewPaymentMethodsHandler(paymentMethodService, validator, storage)
 
 	return &DI{
 		Logger:                logger,
 		DB:                    DB,
 		Jwt:                   jwt,
+		Storage:               storage,
 		AuthHandler:           authHandler,
 		UserHandler:           userHandler,
 		MenuHandler:           menuHandler,

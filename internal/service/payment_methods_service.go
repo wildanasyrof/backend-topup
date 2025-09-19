@@ -27,6 +27,7 @@ func (p *paymentMethodsService) Create(req *dto.CreatePaymentMethodRequest) (*en
 	data := &entity.PaymentMethod{
 		Name:         req.Name,
 		Type:         req.Type,
+		ImgUrl:       req.ImgUrl,
 		Provider:     req.Provider,
 		ProviderCode: req.ProviderCode,
 		Fee:          req.Fee,
