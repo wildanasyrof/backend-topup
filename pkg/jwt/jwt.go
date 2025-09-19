@@ -12,7 +12,7 @@ type JWTService interface {
 	GenerateAccessToken(id uint64, role string) (string, error)
 	// GenerateRefreshToken(userID uuid.UUID) (string, error)
 	// GetRefreshTokenDuration() time.Duration
-	ValidateToken(token string) (string, string, error)
+	ValidateToken(token string) (uint64, string, error)
 }
 
 type jwtService struct {
@@ -69,17 +69,17 @@ func (j *jwtService) GenerateAccessToken(id uint64, role string) (string, error)
 
 // ValidateToken implements JWTService.
 // Returns userID if valid, otherwise error.
-func (j *jwtService) ValidateToken(tokenStr string) (string, string, error) {
+func (j *jwtService) ValidateToken(tokenStr string) (uint64, string, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &AccessTokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(j.SecretKey), nil
 	})
 	if err != nil {
-		return "", "", err
+		return 0, "", err
 	}
 	if claims, ok := token.Claims.(*AccessTokenClaims); ok && token.Valid {
-		return claims.ID, claims.Role, nil
+		return claims.Id, claims.Role, nil
 	}
-	return "", "", errors.New("invalid token")
+	return 0, "", errors.New("invalid token")
 }
 
 func (j *jwtService) GetRefreshTokenDuration() time.Duration {

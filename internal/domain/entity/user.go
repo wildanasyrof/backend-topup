@@ -15,8 +15,8 @@ type User struct {
 	Whatsapp        string    `gorm:"size:255"     json:"whatsapp"`
 	GoogleID        string    `gorm:"size:255"       json:"google_id"`
 	GoogleType      string    `gorm:"size:255"     json:"google_type"`
-	OTP             int       `         json:"otp"`
-	IsVerified      bool      `gorm:"not null;default:false"      json:"is_verified"`
+	OTP             int       `         json:"-"`
+	IsVerified      bool      `gorm:"not null;default:false"      json:"-"`
 	RememberToken   bool      `gorm:"not null;default:false"  json:"-"`
 	CreatedAt       time.Time `gorm:"autoCreateTime"         json:"created_at"`
 	UpdatedAt       time.Time `gorm:"autoUpdateTime"         json:"updated_at"`

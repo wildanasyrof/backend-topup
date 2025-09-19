@@ -14,7 +14,7 @@ func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
 	AuthRoutes(app.Group("/auth"), di.AuthHandler)
 
 	me := app.Group("/me")
-	me.Use(middleware.Auth(di.Jwt), "silver", "gold", "admin")
+	me.Use(middleware.Auth(di.Jwt, "silver", "gold", "admin"))
 
 	UserRoutes(me, di.UserHandler)
 

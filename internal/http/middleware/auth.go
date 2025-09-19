@@ -16,7 +16,7 @@ func Auth(jwtSvc jwt.JWTService, allowedRoles ...string) fiber.Handler {
 		}
 
 		tokenStr := strings.TrimPrefix(auth, "Bearer ")
-		id, role, err := jwtSvc.ValidateToken(tokenStr) // returns user id as string (e.g., JWT sub)
+		id, role, err := jwtSvc.ValidateToken(tokenStr)
 		if err != nil {
 			return response.Error(c, fiber.StatusUnauthorized, "invalid or expired refresh token", nil)
 		}
