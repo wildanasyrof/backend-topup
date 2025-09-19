@@ -18,6 +18,7 @@ type DI struct {
 	Jwt         jwt.JWTService
 	AuthHandler *handler.AuthHandler
 	UserHandler *handler.UserHandler
+	MenuHandler *handler.MenuHandler
 }
 
 func InitDI(cfg *config.Config) *DI {
@@ -33,11 +34,16 @@ func InitDI(cfg *config.Config) *DI {
 	userService := service.NewUserService(userRepo)
 	userHandler := handler.NewUserHandler(userService, validator)
 
+	menuRepo := repository.NewMenuRepository(DB)
+	menuService := service.NewMenuService(menuRepo)
+	menuHandler := handler.NewMenuHandler(menuService, validator)
+
 	return &DI{
 		Logger:      logger,
 		DB:          DB,
 		Jwt:         jwt,
 		AuthHandler: authHandler,
 		UserHandler: userHandler,
+		MenuHandler: menuHandler,
 	}
 }
