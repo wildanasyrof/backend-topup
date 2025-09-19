@@ -13,13 +13,14 @@ import (
 )
 
 type DI struct {
-	Logger          logger.Logger
-	DB              *gorm.DB
-	Jwt             jwt.JWTService
-	AuthHandler     *handler.AuthHandler
-	UserHandler     *handler.UserHandler
-	MenuHandler     *handler.MenuHandler
-	SettingsHandler *handler.SettingsHandler
+	Logger                logger.Logger
+	DB                    *gorm.DB
+	Jwt                   jwt.JWTService
+	AuthHandler           *handler.AuthHandler
+	UserHandler           *handler.UserHandler
+	MenuHandler           *handler.MenuHandler
+	SettingsHandler       *handler.SettingsHandler
+	PaymentMethodsHandler *handler.PaymentMethodsHandler
 }
 
 func InitDI(cfg *config.Config) *DI {
@@ -43,13 +44,18 @@ func InitDI(cfg *config.Config) *DI {
 	settingsService := service.NewSettingsService(settingsRepo)
 	settingsHandler := handler.NewSettingsHandler(settingsService, validator)
 
+	paymentMethodRepo := repository.NewPaymentMethodsRepository(DB)
+	paymentMethodService := service.NewPaymentMethodsService(paymentMethodRepo)
+	paymentMethodsHandler := handler.NewPaymentMethodsHandler(paymentMethodService, validator)
+
 	return &DI{
-		Logger:          logger,
-		DB:              DB,
-		Jwt:             jwt,
-		AuthHandler:     authHandler,
-		UserHandler:     userHandler,
-		MenuHandler:     menuHandler,
-		SettingsHandler: settingsHandler,
+		Logger:                logger,
+		DB:                    DB,
+		Jwt:                   jwt,
+		AuthHandler:           authHandler,
+		UserHandler:           userHandler,
+		MenuHandler:           menuHandler,
+		SettingsHandler:       settingsHandler,
+		PaymentMethodsHandler: paymentMethodsHandler,
 	}
 }

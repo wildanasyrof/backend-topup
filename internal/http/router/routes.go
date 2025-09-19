@@ -24,6 +24,9 @@ func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
 	settings.Use(middleware.Auth(di.Jwt, "admin"))
 	SettingsRoutes(settings, di.SettingsHandler)
 
+	paymentMethods := app.Group("/payment-methods")
+	PaymentMethodsRoutes(paymentMethods, di.PaymentMethodsHandler, di)
+
 	banner := app.Group("/banners")
 	banner.Use(middleware.Auth(di.Jwt, "admin"))
 	banner.Get("/", func(c *fiber.Ctx) error { return c.JSON(fiber.Map{"status": "ok"}) })
