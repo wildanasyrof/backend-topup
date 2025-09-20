@@ -24,6 +24,7 @@ type DI struct {
 	SettingsHandler       *handler.SettingsHandler
 	PaymentMethodsHandler *handler.PaymentMethodsHandler
 	BannerHandler         *handler.BannerHandler
+	DepositHanlder        *handler.DepositHandler
 }
 
 func InitDI(cfg *config.Config) *DI {
@@ -56,6 +57,10 @@ func InitDI(cfg *config.Config) *DI {
 	bannerService := service.NewBannerService(bannerRepo)
 	bannerHandler := handler.NewBannerHandler(bannerService, storage)
 
+	depositRepo := repository.NewDepositRepository(DB)
+	depositService := service.NewDepositService(depositRepo)
+	depositHandler := handler.NewDepositHandler(depositService, validator, logger)
+
 	return &DI{
 		Logger:                logger,
 		DB:                    DB,
@@ -67,5 +72,6 @@ func InitDI(cfg *config.Config) *DI {
 		SettingsHandler:       settingsHandler,
 		PaymentMethodsHandler: paymentMethodsHandler,
 		BannerHandler:         bannerHandler,
+		DepositHanlder:        depositHandler,
 	}
 }

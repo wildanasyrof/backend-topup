@@ -8,6 +8,7 @@ import (
 )
 
 func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
+	app.Use(middleware.LoggerMiddleware(di.Logger))
 
 	app.Get("/health", func(c *fiber.Ctx) error { return c.JSON(fiber.Map{"status": "ok"}) })
 
@@ -30,4 +31,8 @@ func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
 	banner := app.Group("/banners")
 	banner.Use(middleware.Auth(di.Jwt, "admin"))
 	BannerRoutes(banner, di.BannerHandler)
+
+	deposit := app.Group("/deposits")
+	deposit.Use(middleware.Auth(di.Jwt, "silver", "gold", "admin"))
+	DepositRoutes(deposit, di.DepositHanlder)
 }

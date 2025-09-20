@@ -13,7 +13,7 @@ func Connect(cfg *config.Config, logger logger.Logger) *gorm.DB {
 	if err != nil {
 		logger.Fatal("failed to connect database error, " + err.Error())
 	}
-	if err := db.AutoMigrate(&entity.User{}, &entity.Menu{}, &entity.Settings{}, &entity.PaymentMethod{}, &entity.Banner{}); err != nil {
+	if err := db.AutoMigrate(&entity.User{}, &entity.Menu{}, &entity.Settings{}, &entity.PaymentMethod{}, &entity.Banner{}, &entity.Deposit{}); err != nil {
 		logger.Fatal("auto-migrate failed: " + err.Error())
 	}
 	return db
