@@ -23,6 +23,7 @@ type DI struct {
 	MenuHandler           *handler.MenuHandler
 	SettingsHandler       *handler.SettingsHandler
 	PaymentMethodsHandler *handler.PaymentMethodsHandler
+	BannerHandler         *handler.BannerHandler
 }
 
 func InitDI(cfg *config.Config) *DI {
@@ -51,6 +52,10 @@ func InitDI(cfg *config.Config) *DI {
 	paymentMethodService := service.NewPaymentMethodsService(paymentMethodRepo)
 	paymentMethodsHandler := handler.NewPaymentMethodsHandler(paymentMethodService, validator, storage)
 
+	bannerRepo := repository.NewBannerRepository(DB)
+	bannerService := service.NewBannerService(bannerRepo)
+	bannerHandler := handler.NewBannerHandler(bannerService, storage)
+
 	return &DI{
 		Logger:                logger,
 		DB:                    DB,
@@ -61,5 +66,6 @@ func InitDI(cfg *config.Config) *DI {
 		MenuHandler:           menuHandler,
 		SettingsHandler:       settingsHandler,
 		PaymentMethodsHandler: paymentMethodsHandler,
+		BannerHandler:         bannerHandler,
 	}
 }
