@@ -35,4 +35,8 @@ func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
 	deposit := app.Group("/deposits")
 	deposit.Use(middleware.Auth(di.Jwt, "silver", "gold", "admin"))
 	DepositRoutes(deposit, di.DepositHanlder)
+
+	provider := app.Group("/providers")
+	provider.Use(middleware.Auth(di.Jwt, "admin"))
+	ProviderRoutes(provider, di.ProviderHandler)
 }
