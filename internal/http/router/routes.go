@@ -12,6 +12,8 @@ func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
 
 	app.Get("/health", func(c *fiber.Ctx) error { return c.JSON(fiber.Map{"status": "ok"}) })
 
+	app.Static("/uploads", cfg.Server.UploadDir)
+
 	AuthRoutes(app.Group("/auth"), di.AuthHandler)
 
 	me := app.Group("/me")
@@ -42,4 +44,7 @@ func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
 
 	category := app.Group("/categories")
 	CategoryRotues(category, di)
+
+	product := app.Group("/products")
+	ProductRouter(product, di)
 }
