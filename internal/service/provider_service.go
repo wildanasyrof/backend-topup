@@ -25,7 +25,7 @@ func NewProviderService(p repository.ProviderRepository) ProviderService {
 func (p *providerService) Create(req *dto.ProviderRequest) (*entity.Provider, error) {
 	provider := &entity.Provider{
 		Name: req.Name,
-		Slug: req.Slug,
+		Ref:  req.Ref,
 	}
 
 	if err := p.providerRepo.Create(provider); err != nil {
@@ -66,8 +66,8 @@ func (p *providerService) Update(id int64, req *dto.ProviderUpdate) (*entity.Pro
 		provider.Name = req.Name
 	}
 
-	if req.Slug != "" {
-		provider.Slug = req.Slug
+	if req.Ref != "" {
+		provider.Ref = req.Ref
 	}
 
 	if err := p.providerRepo.Update(provider); err != nil {

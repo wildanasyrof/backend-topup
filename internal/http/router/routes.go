@@ -15,7 +15,7 @@ func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
 	AuthRoutes(app.Group("/auth"), di.AuthHandler)
 
 	me := app.Group("/me")
-	me.Use(middleware.Auth(di.Jwt, "silver", "gold", "admin"))
+	me.Use(middleware.Auth(di.Jwt, "admin", "user"))
 	UserRoutes(me, di.UserHandler)
 
 	menu := app.Group("/menus")
@@ -33,7 +33,7 @@ func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
 	BannerRoutes(banner, di.BannerHandler)
 
 	deposit := app.Group("/deposits")
-	deposit.Use(middleware.Auth(di.Jwt, "silver", "gold", "admin"))
+	deposit.Use(middleware.Auth(di.Jwt, "admin", "user"))
 	DepositRoutes(deposit, di.DepositHanlder)
 
 	provider := app.Group("/providers")
