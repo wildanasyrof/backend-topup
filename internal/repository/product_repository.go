@@ -34,12 +34,11 @@ func (p *productRepository) Delete(id int) error {
 // FindAll implements ProductRepository.
 func (p *productRepository) FindAll() ([]*entity.Product, error) {
 	var products []*entity.Product
-
-	if err := p.db.Find(&products).Error; err != nil {
-		return nil, err
-	}
-
-	return products, nil
+	err := p.db.
+		Preload("Prices").
+		// if you also want the user level per price:
+		Find(&products).Error
+	return products, err
 }
 
 func (p *productRepository) FindByID(id int) (*entity.Product, error) {

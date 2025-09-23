@@ -13,6 +13,8 @@ type Product struct {
 
 	Category Category `json:"-" gorm:"foreignKey:CategoryID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
 	Provider Provider `json:"-" gorm:"foreignKey:ProviderID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
+
+	Prices []Price `gorm:"foreignKey:ProductID" json:"prices"` // <- important
 }
 
 func (Product) TableName() string { return "products" }
