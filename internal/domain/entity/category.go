@@ -17,20 +17,20 @@ const (
 type Category struct {
 	ID          int       `json:"id" gorm:"primaryKey;autoIncrement"`
 	Name        string    `json:"name" gorm:"type:varchar(255);not null;unique"`
-	Type        Type      `json:"type" gorm:"type:text;not null;default=prabayar;check:cat_status_check,status IN ('prabayar','pascabayar')"`
-	MenuID      int64     `json:"menu_id" gorm:"not null;column:menu_id"`
-	ProviderID  int64     `json:"provider_id" gorm:"primaryKey;autoIncrement"`
+	Type        Type      `json:"type" gorm:"type:text;not null;default:prabayar;check:cat_type_check,type IN ('prabayar','pascabayar')"`
+	MenuID      int64     `json:"menu_id" gorm:"not null"`
+	ProviderID  int64     `json:"provider_id" gorm:"not null"`
 	Slug        string    `json:"slug" gorm:"type:varchar(255);not null;unique"`
-	Status      CatStatus `json:"status" gorm:"type:text;not null;default=inactive;check:cat_status_check,status IN ('inactive','active','problem')"`
-	Description string    `json:"description" gorm:"column:description"`
+	Status      CatStatus `json:"status" gorm:"type:text;not null;default:inactive;check:cat_status_check,status IN ('inactive','active','problem')"`
+	Description string    `json:"description"`
 	InputType   string    `json:"input_type" gorm:"type:varchar(255);not null"`
-	ImgUrl      string    `json:"img_url" gorm:"not null;url"`
+	ImgUrl      string    `json:"img_url" gorm:"not null"`
 	IsLogin     bool      `json:"is_login"`
 	CreatedAt   int64     `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt   int64     `json:"updated_at" gorm:"autoUpdateTime"`
 
-	Menu     `json:"-" gorm:"foreignKey:MenuID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Provider `json:"-" gorm:"foreignKey:ProviderID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Menu     Menu     `json:"-" gorm:"foreignKey:MenuID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
+	Provider Provider `json:"-" gorm:"foreignKey:ProviderID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
 }
 
 // TableName overrides the table name used by GORM

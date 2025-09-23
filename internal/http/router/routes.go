@@ -39,4 +39,7 @@ func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
 	provider := app.Group("/providers")
 	provider.Use(middleware.Auth(di.Jwt, "admin"))
 	ProviderRoutes(provider, di.ProviderHandler)
+
+	category := app.Group("/categories")
+	CategoryRotues(category, di)
 }
