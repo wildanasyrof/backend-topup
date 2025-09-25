@@ -25,13 +25,12 @@ func NewPaymentMethodsService(repo repository.PaymentMethodsRepository) PaymentM
 // Create implements PaymentMethodsService.
 func (p *paymentMethodsService) Create(req *dto.CreatePaymentMethodRequest) (*entity.PaymentMethod, error) {
 	data := &entity.PaymentMethod{
-		Name:         req.Name,
-		Type:         req.Type,
-		ImgUrl:       req.ImgUrl,
-		Provider:     req.Provider,
-		ProviderCode: req.ProviderCode,
-		Fee:          req.Fee,
-		Percent:      req.Percent,
+		Name:       req.Name,
+		Type:       req.Type,
+		ImgUrl:     req.ImgUrl,
+		ProviderID: req.ProviderID,
+		Fee:        req.Fee,
+		Percent:    req.Percent,
 	}
 
 	if err := p.repo.Create(data); err != nil {

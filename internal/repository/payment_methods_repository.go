@@ -34,7 +34,7 @@ func (p *paymentMethodsRepository) Delete(id uint64) error {
 // FindAll implements PaymentMethodsRepisitory.
 func (p *paymentMethodsRepository) FindAll() ([]*entity.PaymentMethod, error) {
 	var data []*entity.PaymentMethod
-	if err := p.db.Find(&data).Error; err != nil {
+	if err := p.db.Preload("Provider").Find(&data).Error; err != nil {
 		return nil, err
 	}
 
