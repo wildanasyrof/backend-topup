@@ -44,7 +44,7 @@ func (p *productRepository) FindAll() ([]*entity.Product, error) {
 func (p *productRepository) FindByID(id int) (*entity.Product, error) {
 	var product entity.Product
 
-	if err := p.db.Where("id = ?", id).First(&product).Error; err != nil {
+	if err := p.db.Preload("Prices").First(&product, id).Error; err != nil {
 		return nil, err
 	}
 

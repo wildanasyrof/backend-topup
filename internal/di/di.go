@@ -29,6 +29,7 @@ type DI struct {
 	CategoryHandler       *handler.CategoryHandler
 	ProductHandler        *handler.ProductHandler
 	PriceHandler          *handler.PriceHandler
+	OrderHandler          *handler.OrderHandler
 }
 
 func InitDI(cfg *config.Config) *DI {
@@ -81,6 +82,9 @@ func InitDI(cfg *config.Config) *DI {
 	priceService := service.NewPriceService(priceRepository)
 	priceHandler := handler.NewPriceHandler(priceService, validator)
 
+	orderRepository := repository.NewOrderRepository(DB)
+	orderService := service.NewOrderService(orderRepository, logger, userRepo, priceRepository)
+	orderHandler := handler.NewOrderHandler(orderService, validator)
 	return &DI{
 		Logger:                logger,
 		DB:                    DB,
@@ -97,5 +101,6 @@ func InitDI(cfg *config.Config) *DI {
 		CategoryHandler:       categoryHandler,
 		ProductHandler:        productHandler,
 		PriceHandler:          priceHandler,
+		OrderHandler:          orderHandler,
 	}
 }

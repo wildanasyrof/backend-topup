@@ -9,6 +9,7 @@ type PriceRepository interface {
 	Create(req *entity.Price) error
 	FindAll() ([]*entity.Price, error)
 	FindByID(id int) (*entity.Price, error)
+	FindByProductIDnUserLevelID(productId int, userLevelId int) (*entity.Price, error)
 	Update(price *entity.Price) error
 	Delete(id int) error
 }
@@ -56,4 +57,14 @@ func (p *priceRepository) FindByID(id int) (*entity.Price, error) {
 // Update implements PriceRepository.
 func (p *priceRepository) Update(price *entity.Price) error {
 	return p.db.Save(price).Error
+}
+
+func (p *priceRepository) FindByProductIDnUserLevelID(productId int, userLevelId int) (*entity.Price, error) {
+	var price entity.Price
+
+	err := p.db.
+		Where("product_id = ? AND user_level_id = ?", productId, userLevelId).
+		First(&price).Error
+
+	return &price, err
 }

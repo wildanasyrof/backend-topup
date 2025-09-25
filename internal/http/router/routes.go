@@ -50,4 +50,7 @@ func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
 
 	price := app.Group("/prices")
 	PriceRoutes(price, di)
+
+	order := app.Group("/orders")
+	OrderRoutes(order, di)
 }
