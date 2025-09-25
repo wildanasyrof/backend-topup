@@ -9,6 +9,7 @@ import (
 type CategoryService interface {
 	Create(req *dto.CreateCategoryRequest) (*entity.Category, error)
 	GetAll() ([]*entity.Category, error)
+	GetBySlug(slug string) (*entity.Category, error)
 	Update(id int64, req *dto.UpdateCategoryRequest) (*entity.Category, error)
 	Delete(id int64) (*entity.Category, error)
 }
@@ -60,6 +61,16 @@ func (c *categoryService) Delete(id int64) (*entity.Category, error) {
 // GetAll implements CategoryService.
 func (c *categoryService) GetAll() ([]*entity.Category, error) {
 	return c.repo.FindAll()
+}
+
+func (c *categoryService) GetBySlug(slug string) (*entity.Category, error) {
+	category, err := c.repo.FindBySlug(slug)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return category, nil
 }
 
 // Update implements CategoryService.

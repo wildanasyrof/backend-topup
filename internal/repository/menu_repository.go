@@ -35,7 +35,9 @@ func (m *menuRepository) Delete(id int64) error {
 // FindAll implements MenuRepository.
 func (m *menuRepository) FindAll() ([]*entity.Menu, error) {
 	var menus []*entity.Menu
-	err := m.db.Find(&menus).Error
+	err := m.db.
+		Preload("Categories").
+		Find(&menus).Error
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +48,7 @@ func (m *menuRepository) FindAll() ([]*entity.Menu, error) {
 // FindByID implements MenuRepository.
 func (m *menuRepository) FindByID(id int64) (*entity.Menu, error) {
 	var menu entity.Menu
-	err := m.db.Where("id = ?", id).First(&menu).Error
+	err := m.db.Preload("Categories").Where("id = ?", id).First(&menu).Error
 	if err != nil {
 		return nil, err
 	}

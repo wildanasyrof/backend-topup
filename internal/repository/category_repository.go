@@ -9,6 +9,7 @@ type CategoryRepository interface {
 	Create(req *entity.Category) error
 	FindAll() ([]*entity.Category, error)
 	FindByID(id int64) (*entity.Category, error)
+	FindBySlug(slug string) (*entity.Category, error)
 	Update(req *entity.Category) error
 	Delete(id int64) error
 }
@@ -43,11 +44,19 @@ func (c *categoryRepository) FindAll() ([]*entity.Category, error) {
 
 func (c *categoryRepository) FindByID(id int64) (*entity.Category, error) {
 	var data entity.Category
-	if err := c.db.Where("id = ?", id).First(&data).Error; err != nil {
+	if err := c.db.Preload("Products").Where("id = ?", id).First(&data).Error; err != nil {
 		return nil, err
 	}
 
 	return &data, nil
+}
+
+func (c *categoryRepository) FindBySlug(slug string) (*entity.Category, error) {
+	var data entity.Category
+
+	err := c.db.Preload("Products").Where("slug = ?", slug).First(&data).Error
+
+	return &data, err
 }
 
 // Update implements CategoryRepository.

@@ -31,6 +31,8 @@ type Category struct {
 
 	Menu     Menu     `json:"-" gorm:"foreignKey:MenuID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
 	Provider Provider `json:"-" gorm:"foreignKey:ProviderID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
+
+	Products []Product `gorm:"foreignKey:CategoryID" json:"products"` // <- important
 }
 
 // TableName overrides the table name used by GORM

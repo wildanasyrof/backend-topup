@@ -123,3 +123,15 @@ func (h *CategoryHandler) Delete(c *fiber.Ctx) error {
 
 	return response.Success(c, "success deleting category", category)
 }
+
+func (h *CategoryHandler) GetBySlug(c *fiber.Ctx) error {
+	slug := c.Params("slug")
+
+	category, err := h.service.GetBySlug(slug)
+
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "failed to get category", err)
+	}
+
+	return response.Success(c, "success get category", category)
+}

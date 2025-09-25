@@ -8,6 +8,7 @@ import (
 
 func CategoryRotues(r fiber.Router, di *di.DI) {
 	r.Get("/", di.CategoryHandler.GetAll)
+	r.Get("/:slug", di.CategoryHandler.GetBySlug)
 
 	r.Use(middleware.Auth(di.Jwt, "admin"))
 	r.Post("/", di.CategoryHandler.Create)
