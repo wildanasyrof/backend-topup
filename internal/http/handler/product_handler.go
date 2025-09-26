@@ -5,7 +5,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
+	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"github.com/wildanasyrof/backend-topup/internal/service"
+	"github.com/wildanasyrof/backend-topup/pkg/pagination"
 	"github.com/wildanasyrof/backend-topup/pkg/response"
 	"github.com/wildanasyrof/backend-topup/pkg/storage"
 	"github.com/wildanasyrof/backend-topup/pkg/utils"
@@ -61,12 +63,23 @@ func (p *ProductHandler) Create(c *fiber.Ctx) error {
 }
 
 func (p *ProductHandler) GetAll(c *fiber.Ctx) error {
-	products, err := p.service.GetAll(c.Context())
+	var req dto.ProductListQuery
+
+	if err := c.QueryParser(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "invalid request param", err)
+	}
+
+	req.Normalize()
+
+	items, meta, err := p.service.GetAll(c.UserContext(), req)
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed get all products", err.Error())
 	}
 
-	return response.Success(c, "success get all products", products)
+	return response.Success(c, "success get all products", pagination.Page[entity.Product]{
+		Items: items,
+		Meta:  meta,
+	})
 }
 
 func (p *ProductHandler) Update(c *fiber.Ctx) error {

@@ -11,7 +11,7 @@ import (
 
 func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
 	app.Use(middleware.LoggerMiddleware(di.Logger))
-	app.Use(middleware.TimeoutMiddleware(time.Duration(cfg.Server.RequestTimeOut)))
+	app.Use(middleware.TimeoutMiddleware(time.Duration(cfg.Server.RequestTimeOut) * time.Second))
 
 	app.Get("/health", func(c *fiber.Ctx) error { return c.JSON(fiber.Map{"status": "ok"}) })
 

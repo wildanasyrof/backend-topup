@@ -2,6 +2,7 @@ package dto
 
 import (
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
+	"github.com/wildanasyrof/backend-topup/pkg/pagination"
 )
 
 type ProductCreateRequest struct {
@@ -20,6 +21,15 @@ type ProductUpdateRequest struct {
 	Status      *string `form:"status,omitempty" validate:"omitempty,oneof=active inactive problem"`
 	Description *string `form:"description,omitempty"`
 	ImgURL      *string `form:"img_url,omitempty" validate:"omitempty,url"`
+}
+
+type ProductListQuery struct {
+	pagination.Query
+
+	ProviderID *uint `query:"provider_id"`
+	CategoryID *uint `query:"category_id"`
+	LevelID    *uint `query:"level_id"` // if prices vary by user level
+	Active     *bool `query:"active"`
 }
 
 func (updateReq *ProductUpdateRequest) ToEntity(

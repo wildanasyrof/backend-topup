@@ -6,11 +6,12 @@ import (
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"github.com/wildanasyrof/backend-topup/internal/repository"
+	"github.com/wildanasyrof/backend-topup/pkg/pagination"
 )
 
 type ProductService interface {
 	Create(ctx context.Context, req *dto.ProductCreateRequest) (*entity.Product, error)
-	GetAll(ctx context.Context) ([]*entity.Product, error)
+	GetAll(ctx context.Context, q dto.ProductListQuery) ([]entity.Product, pagination.Meta, error)
 	Update(ctx context.Context, id int, req *dto.ProductUpdateRequest) (*entity.Product, error)
 	Delete(ctx context.Context, id int) (*entity.Product, error)
 }
@@ -56,8 +57,8 @@ func (p *productService) Delete(ctx context.Context, id int) (*entity.Product, e
 }
 
 // GetAll implements ProductService.
-func (p *productService) GetAll(ctx context.Context) ([]*entity.Product, error) {
-	return p.repo.FindAll(ctx)
+func (p *productService) GetAll(ctx context.Context, q dto.ProductListQuery) ([]entity.Product, pagination.Meta, error) {
+	return p.repo.FindAll(ctx, q)
 }
 
 // Update implements ProductService.
