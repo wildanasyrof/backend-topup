@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"github.com/wildanasyrof/backend-topup/internal/repository"
@@ -8,9 +10,9 @@ import (
 )
 
 type DepositService interface {
-	Create(userID uint64, req *dto.DepositRequest) (*entity.Deposit, error)
-	GetByUserID(userID uint64) ([]entity.Deposit, error)
-	GetByDepositID(depositID string) (*entity.Deposit, error)
+	Create(ctx context.Context, userID uint64, req *dto.DepositRequest) (*entity.Deposit, error)
+	GetByUserID(ctx context.Context, userID uint64) ([]entity.Deposit, error)
+	GetByDepositID(ctx context.Context, depositID string) (*entity.Deposit, error)
 }
 
 type depositService struct {
@@ -22,7 +24,7 @@ func NewDepositService(repo repository.DepositRepository) DepositService {
 }
 
 // Create implements DepositService.
-func (d *depositService) Create(userID uint64, req *dto.DepositRequest) (*entity.Deposit, error) {
+func (d *depositService) Create(ctx context.Context, userID uint64, req *dto.DepositRequest) (*entity.Deposit, error) {
 	deposit := &entity.Deposit{
 		UserID:          userID,
 		PaymentMethodID: req.PaymentMethodID,
@@ -32,7 +34,7 @@ func (d *depositService) Create(userID uint64, req *dto.DepositRequest) (*entity
 		Fee:             req.Fee,
 	}
 
-	if err := d.repo.Create(deposit); err != nil {
+	if err := d.repo.Create(ctx, deposit); err != nil {
 		return nil, err
 	}
 
@@ -40,11 +42,11 @@ func (d *depositService) Create(userID uint64, req *dto.DepositRequest) (*entity
 }
 
 // GetByDepositID implements DepositService.
-func (d *depositService) GetByDepositID(depositID string) (*entity.Deposit, error) {
-	return d.repo.FindByTopupID(depositID)
+func (d *depositService) GetByDepositID(ctx context.Context, depositID string) (*entity.Deposit, error) {
+	return d.repo.FindByTopupID(ctx, depositID)
 }
 
 // GetByUserID implements DepositService.
-func (d *depositService) GetByUserID(userID uint64) ([]entity.Deposit, error) {
-	return d.repo.FindByUserID(userID)
+func (d *depositService) GetByUserID(ctx context.Context, userID uint64) ([]entity.Deposit, error) {
+	return d.repo.FindByUserID(ctx, userID)
 }

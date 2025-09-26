@@ -39,7 +39,7 @@ func (h *DepositHandler) Create(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Validation error", err)
 	}
 
-	deposit, err := h.DepositSvc.Create(uid, &req)
+	deposit, err := h.DepositSvc.Create(c.UserContext(), uid, &req)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to create deposit", err.Error())
 	}
@@ -53,7 +53,7 @@ func (h *DepositHandler) GetByUserID(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusUnauthorized, "User ID not found", nil)
 	}
 
-	deposits, err := h.DepositSvc.GetByUserID(uid)
+	deposits, err := h.DepositSvc.GetByUserID(c.UserContext(), uid)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to get deposits", err.Error())
 	}
@@ -66,7 +66,7 @@ func (h *DepositHandler) GetByDepositID(c *fiber.Ctx) error {
 
 	h.Logger.Debug(depositID)
 
-	deposit, err := h.DepositSvc.GetByDepositID(depositID)
+	deposit, err := h.DepositSvc.GetByDepositID(c.UserContext(), depositID)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to get deposit", err.Error())
 	}

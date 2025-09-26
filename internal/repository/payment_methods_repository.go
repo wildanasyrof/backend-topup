@@ -1,16 +1,18 @@
 package repository
 
 import (
+	"context"
+
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"gorm.io/gorm"
 )
 
 type PaymentMethodsRepository interface {
-	FindAll() ([]*entity.PaymentMethod, error)
-	Create(paymentMethod *entity.PaymentMethod) error
-	Update(paymentMethod *entity.PaymentMethod) error
-	Delete(id uint64) error
-	FindByID(id uint64) (*entity.PaymentMethod, error)
+	FindAll(ctx context.Context) ([]*entity.PaymentMethod, error)
+	Create(ctx context.Context, paymentMethod *entity.PaymentMethod) error
+	Update(ctx context.Context, paymentMethod *entity.PaymentMethod) error
+	Delete(ctx context.Context, id uint64) error
+	FindByID(ctx context.Context, id uint64) (*entity.PaymentMethod, error)
 }
 
 type paymentMethodsRepository struct {
@@ -21,37 +23,30 @@ func NewPaymentMethodsRepository(db *gorm.DB) PaymentMethodsRepository {
 	return &paymentMethodsRepository{db: db}
 }
 
-// Create implements PaymentMethodsRepisitory.
-func (p *paymentMethodsRepository) Create(paymentMethod *entity.PaymentMethod) error {
-	return p.db.Create(paymentMethod).Error
+func (p *paymentMethodsRepository) Create(ctx context.Context, paymentMethod *entity.PaymentMethod) error {
+	return p.db.WithContext(ctx).Create(paymentMethod).Error
 }
 
-// Delete implements PaymentMethodsRepisitory.
-func (p *paymentMethodsRepository) Delete(id uint64) error {
-	return p.db.Delete(&entity.PaymentMethod{}, id).Error
+func (p *paymentMethodsRepository) Delete(ctx context.Context, id uint64) error {
+	return p.db.WithContext(ctx).Delete(&entity.PaymentMethod{}, id).Error
 }
 
-// FindAll implements PaymentMethodsRepisitory.
-func (p *paymentMethodsRepository) FindAll() ([]*entity.PaymentMethod, error) {
+func (p *paymentMethodsRepository) FindAll(ctx context.Context) ([]*entity.PaymentMethod, error) {
 	var data []*entity.PaymentMethod
-	if err := p.db.Preload("Provider").Find(&data).Error; err != nil {
+	if err := p.db.WithContext(ctx).Preload("Provider").Find(&data).Error; err != nil {
 		return nil, err
 	}
-
 	return data, nil
 }
 
-// FindByID implements PaymentMethodsRepisitory.
-func (p *paymentMethodsRepository) FindByID(id uint64) (*entity.PaymentMethod, error) {
+func (p *paymentMethodsRepository) FindByID(ctx context.Context, id uint64) (*entity.PaymentMethod, error) {
 	var data entity.PaymentMethod
-	if err := p.db.First(&data, id).Error; err != nil {
+	if err := p.db.WithContext(ctx).First(&data, id).Error; err != nil {
 		return nil, err
 	}
-
 	return &data, nil
 }
 
-// Update implements PaymentMethodsRepisitory.
-func (p *paymentMethodsRepository) Update(paymentMethod *entity.PaymentMethod) error {
-	return p.db.Save(paymentMethod).Error
+func (p *paymentMethodsRepository) Update(ctx context.Context, paymentMethod *entity.PaymentMethod) error {
+	return p.db.WithContext(ctx).Save(paymentMethod).Error
 }

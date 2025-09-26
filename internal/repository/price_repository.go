@@ -1,17 +1,19 @@
 package repository
 
 import (
+	"context"
+
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"gorm.io/gorm"
 )
 
 type PriceRepository interface {
-	Create(req *entity.Price) error
-	FindAll() ([]*entity.Price, error)
-	FindByID(id int) (*entity.Price, error)
-	FindByProductIDnUserLevelID(productId int, userLevelId int) (*entity.Price, error)
-	Update(price *entity.Price) error
-	Delete(id int) error
+	Create(ctx context.Context, req *entity.Price) error
+	FindAll(ctx context.Context) ([]*entity.Price, error)
+	FindByID(ctx context.Context, id int) (*entity.Price, error)
+	FindByProductIDnUserLevelID(ctx context.Context, productId int, userLevelId int) (*entity.Price, error)
+	Update(ctx context.Context, price *entity.Price) error
+	Delete(ctx context.Context, id int) error
 }
 
 type priceRepository struct {
@@ -23,20 +25,20 @@ func NewPriceRepository(db *gorm.DB) PriceRepository {
 }
 
 // Create implements PriceRepository.
-func (p *priceRepository) Create(req *entity.Price) error {
-	return p.db.Create(req).Error
+func (p *priceRepository) Create(ctx context.Context, req *entity.Price) error {
+	return p.db.WithContext(ctx).Create(req).Error
 }
 
 // Delete implements PriceRepository.
-func (p *priceRepository) Delete(id int) error {
-	return p.db.Delete(&entity.Price{}, id).Error
+func (p *priceRepository) Delete(ctx context.Context, id int) error {
+	return p.db.WithContext(ctx).Delete(&entity.Price{}, id).Error
 }
 
 // FindAll implements PriceRepository.
-func (p *priceRepository) FindAll() ([]*entity.Price, error) {
+func (p *priceRepository) FindAll(ctx context.Context) ([]*entity.Price, error) {
 	var prices []*entity.Price
 
-	if err := p.db.Find(&prices).Error; err != nil {
+	if err := p.db.WithContext(ctx).Find(&prices).Error; err != nil {
 		return nil, err
 	}
 
@@ -44,10 +46,10 @@ func (p *priceRepository) FindAll() ([]*entity.Price, error) {
 }
 
 // FindByID implements PriceRepository.
-func (p *priceRepository) FindByID(id int) (*entity.Price, error) {
+func (p *priceRepository) FindByID(ctx context.Context, id int) (*entity.Price, error) {
 	var price entity.Price
 
-	if err := p.db.Where("id = ?", id).First(&price).Error; err != nil {
+	if err := p.db.WithContext(ctx).Where("id = ?", id).First(&price).Error; err != nil {
 		return nil, err
 	}
 
@@ -55,14 +57,14 @@ func (p *priceRepository) FindByID(id int) (*entity.Price, error) {
 }
 
 // Update implements PriceRepository.
-func (p *priceRepository) Update(price *entity.Price) error {
-	return p.db.Save(price).Error
+func (p *priceRepository) Update(ctx context.Context, price *entity.Price) error {
+	return p.db.WithContext(ctx).Save(price).Error
 }
 
-func (p *priceRepository) FindByProductIDnUserLevelID(productId int, userLevelId int) (*entity.Price, error) {
+func (p *priceRepository) FindByProductIDnUserLevelID(ctx context.Context, productId int, userLevelId int) (*entity.Price, error) {
 	var price entity.Price
 
-	err := p.db.
+	err := p.db.WithContext(ctx).
 		Where("product_id = ? AND user_level_id = ?", productId, userLevelId).
 		First(&price).Error
 

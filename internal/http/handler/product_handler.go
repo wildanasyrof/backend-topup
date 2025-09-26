@@ -51,7 +51,7 @@ func (p *ProductHandler) Create(c *fiber.Ctx) error {
 
 	req.ImgURL = imgUrl
 
-	product, err := p.service.Create(&req)
+	product, err := p.service.Create(c.UserContext(), &req)
 
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed creating product", err.Error())
@@ -61,7 +61,7 @@ func (p *ProductHandler) Create(c *fiber.Ctx) error {
 }
 
 func (p *ProductHandler) GetAll(c *fiber.Ctx) error {
-	products, err := p.service.GetAll()
+	products, err := p.service.GetAll(c.Context())
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed get all products", err.Error())
 	}
@@ -98,7 +98,7 @@ func (p *ProductHandler) Update(c *fiber.Ctx) error {
 		req.ImgURL = &imgUrl
 	}
 
-	product, err := p.service.Update(id, &req)
+	product, err := p.service.Update(c.UserContext(), id, &req)
 
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed updating product", err)
@@ -115,7 +115,7 @@ func (p *ProductHandler) Delete(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "invalid parameter id", err.Error())
 	}
 
-	product, err := p.service.Delete(id)
+	product, err := p.service.Delete(c.UserContext(), id)
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed to delete product", err.Error())
 	}

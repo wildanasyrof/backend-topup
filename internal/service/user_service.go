@@ -1,14 +1,17 @@
 package service
 
 import (
+	"context" // Import the context package
+
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"github.com/wildanasyrof/backend-topup/internal/repository"
 )
 
+// UserService interface updated to include context.Context
 type UserService interface {
-	GetUserByID(userID uint64) (*entity.User, error)
-	Update(userID uint64, req *dto.UpdateUserRequest) (*entity.User, error)
+	GetUserByID(ctx context.Context, userID uint64) (*entity.User, error)
+	Update(ctx context.Context, userID uint64, req *dto.UpdateUserRequest) (*entity.User, error)
 }
 
 type userService struct {
@@ -19,8 +22,9 @@ func NewUserService(userRepositry repository.UserRepository) UserService {
 	return &userService{userRepository: userRepositry}
 }
 
-func (s *userService) GetUserByID(id uint64) (*entity.User, error) {
-	user, err := s.userRepository.GetByID(id)
+func (s *userService) GetUserByID(ctx context.Context, id uint64) (*entity.User, error) {
+	// Pass ctx to the repository call
+	user, err := s.userRepository.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -29,8 +33,9 @@ func (s *userService) GetUserByID(id uint64) (*entity.User, error) {
 }
 
 // update implements UserService.
-func (s *userService) Update(userID uint64, req *dto.UpdateUserRequest) (*entity.User, error) {
-	user, err := s.userRepository.GetByID(userID)
+func (s *userService) Update(ctx context.Context, userID uint64, req *dto.UpdateUserRequest) (*entity.User, error) {
+	// Pass ctx to the repository call
+	user, err := s.userRepository.GetByID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +48,8 @@ func (s *userService) Update(userID uint64, req *dto.UpdateUserRequest) (*entity
 		user.Whatsapp = *req.Whatsapp
 	}
 
-	if err := s.userRepository.Update(user); err != nil {
+	// Pass ctx to the repository call
+	if err := s.userRepository.Update(ctx, user); err != nil {
 		return nil, err
 	}
 

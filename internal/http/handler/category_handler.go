@@ -51,7 +51,7 @@ func (h *CategoryHandler) Create(c *fiber.Ctx) error {
 
 	req.ImgUrl = imgUrl
 
-	category, err := h.service.Create(&req)
+	category, err := h.service.Create(c.UserContext(), &req)
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed create category", err.Error())
 	}
@@ -61,7 +61,7 @@ func (h *CategoryHandler) Create(c *fiber.Ctx) error {
 
 func (h *CategoryHandler) GetAll(c *fiber.Ctx) error {
 
-	category, err := h.service.GetAll()
+	category, err := h.service.GetAll(c.Context())
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed to get category", err.Error())
 	}
@@ -98,7 +98,7 @@ func (h *CategoryHandler) Update(c *fiber.Ctx) error {
 		req.ImgUrl = imgUrl
 	}
 
-	category, err := h.service.Update(int64(id), &req)
+	category, err := h.service.Update(c.UserContext(), int64(id), &req)
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "error updating category", err.Error())
 	}
@@ -115,7 +115,7 @@ func (h *CategoryHandler) Delete(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "invalid category id", err.Error())
 	}
 
-	category, err := h.service.Delete(int64(id))
+	category, err := h.service.Delete(c.UserContext(), int64(id))
 
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "error deleting category", err.Error())
@@ -127,7 +127,7 @@ func (h *CategoryHandler) Delete(c *fiber.Ctx) error {
 func (h *CategoryHandler) GetBySlug(c *fiber.Ctx) error {
 	slug := c.Params("slug")
 
-	category, err := h.service.GetBySlug(slug)
+	category, err := h.service.GetBySlug(c.UserContext(), slug)
 
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed to get category", err)

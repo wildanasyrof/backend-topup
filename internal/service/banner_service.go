@@ -1,15 +1,17 @@
 package service
 
 import (
+	"context"
+
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"github.com/wildanasyrof/backend-topup/internal/repository"
 )
 
 type BannerService interface {
-	Create(imgUrl string) (*entity.Banner, error)
-	FindAll() ([]*entity.Banner, error)
-	Update(id int, imgUrl string) (*entity.Banner, error)
-	Delete(id int) (*entity.Banner, error)
+	Create(ctx context.Context, imgUrl string) (*entity.Banner, error)
+	FindAll(ctx context.Context) ([]*entity.Banner, error)
+	Update(ctx context.Context, id int, imgUrl string) (*entity.Banner, error)
+	Delete(ctx context.Context, id int) (*entity.Banner, error)
 }
 
 type bannerService struct {
@@ -23,12 +25,12 @@ func NewBannerService(bannerRepo repository.BannerRepository) BannerService {
 }
 
 // Create implements BannerService.
-func (b *bannerService) Create(imgUrl string) (*entity.Banner, error) {
+func (b *bannerService) Create(ctx context.Context, imgUrl string) (*entity.Banner, error) {
 	banner := &entity.Banner{
 		ImgUrl: imgUrl,
 	}
 
-	if err := b.bannerRepo.Create(banner); err != nil {
+	if err := b.bannerRepo.Create(ctx, banner); err != nil {
 		return nil, err
 	}
 
@@ -36,13 +38,13 @@ func (b *bannerService) Create(imgUrl string) (*entity.Banner, error) {
 }
 
 // Delete implements BannerService.
-func (b *bannerService) Delete(id int) (*entity.Banner, error) {
-	banner, err := b.bannerRepo.FindByID(id)
+func (b *bannerService) Delete(ctx context.Context, id int) (*entity.Banner, error) {
+	banner, err := b.bannerRepo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := b.bannerRepo.Delete(id); err != nil {
+	if err := b.bannerRepo.Delete(ctx, id); err != nil {
 		return nil, err
 	}
 
@@ -50,8 +52,8 @@ func (b *bannerService) Delete(id int) (*entity.Banner, error) {
 }
 
 // FindAll implements BannerService.
-func (b *bannerService) FindAll() ([]*entity.Banner, error) {
-	banners, err := b.bannerRepo.FindAll()
+func (b *bannerService) FindAll(ctx context.Context) ([]*entity.Banner, error) {
+	banners, err := b.bannerRepo.FindAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -60,15 +62,15 @@ func (b *bannerService) FindAll() ([]*entity.Banner, error) {
 }
 
 // Update implements BannerService.
-func (b *bannerService) Update(id int, imgUrl string) (*entity.Banner, error) {
-	banner, err := b.bannerRepo.FindByID(id)
+func (b *bannerService) Update(ctx context.Context, id int, imgUrl string) (*entity.Banner, error) {
+	banner, err := b.bannerRepo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
 	banner.ImgUrl = imgUrl
 
-	if err := b.bannerRepo.Update(banner); err != nil {
+	if err := b.bannerRepo.Update(ctx, banner); err != nil {
 		return nil, err
 	}
 

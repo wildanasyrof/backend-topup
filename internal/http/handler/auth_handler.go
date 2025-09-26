@@ -26,14 +26,14 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	var req dto.RegisterUserRequest
 
 	if err := c.BodyParser(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "invalid request body", err.Error())
+		return response.Error(c, fiber.StatusBadRequest, "invalid request body", nil)
 	}
 
 	if err := h.validator.ValidateBody(req); err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "validation error", err)
 	}
 
-	user, err := h.authService.Register(&req)
+	user, err := h.authService.Register(c.UserContext(), &req)
 	if err != nil {
 		errMsg := err.Error()
 
@@ -62,7 +62,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "validation error", err)
 	}
 
-	user, token, err := h.authService.Login(&req)
+	user, token, err := h.authService.Login(c.UserContext(), &req)
 	if err != nil {
 		return response.Error(c, fiber.StatusUnauthorized, "login failed", err.Error())
 	}

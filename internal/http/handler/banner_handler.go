@@ -49,7 +49,7 @@ func (h *BannerHandler) Create(c *fiber.Ctx) error {
 	imgUrl := "/uploads/" + filename
 
 	// ---- 5) Service call ----
-	res, err := h.bannerSvc.Create(imgUrl)
+	res, err := h.bannerSvc.Create(c.UserContext(), imgUrl)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "failed to upload banner", err.Error())
 	}
@@ -58,7 +58,7 @@ func (h *BannerHandler) Create(c *fiber.Ctx) error {
 }
 
 func (h *BannerHandler) GetAll(c *fiber.Ctx) error {
-	res, err := h.bannerSvc.FindAll()
+	res, err := h.bannerSvc.FindAll(c.Context())
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "failed to get banners", err.Error())
 	}
@@ -72,7 +72,7 @@ func (h *BannerHandler) Delete(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "invalid banner id", err.Error())
 	}
 
-	banner, err := h.bannerSvc.Delete(id)
+	banner, err := h.bannerSvc.Delete(c.UserContext(), id)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "failed to delete banner", err.Error())
 	}
@@ -113,7 +113,7 @@ func (h *BannerHandler) Update(c *fiber.Ctx) error {
 	imgUrl := "/uploads/" + filename
 
 	// ---- 5) Service call ----
-	res, err := h.bannerSvc.Update(id, imgUrl)
+	res, err := h.bannerSvc.Update(c.UserContext(), id, imgUrl)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "failed to upload banner", err.Error())
 	}

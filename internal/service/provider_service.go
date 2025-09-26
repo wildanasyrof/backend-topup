@@ -1,16 +1,19 @@
 package service
 
 import (
+	"context" // Import the context package
+
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"github.com/wildanasyrof/backend-topup/internal/repository"
 )
 
+// ProviderService interface updated to include context.Context
 type ProviderService interface {
-	Create(req *dto.ProviderRequest) (*entity.Provider, error)
-	GetAll() ([]*entity.Provider, error)
-	Update(id int64, req *dto.ProviderUpdate) (*entity.Provider, error)
-	Delete(id int64) (*entity.Provider, error)
+	Create(ctx context.Context, req *dto.ProviderRequest) (*entity.Provider, error)
+	GetAll(ctx context.Context) ([]*entity.Provider, error)
+	Update(ctx context.Context, id int64, req *dto.ProviderUpdate) (*entity.Provider, error)
+	Delete(ctx context.Context, id int64) (*entity.Provider, error)
 }
 
 type providerService struct {
@@ -22,13 +25,14 @@ func NewProviderService(p repository.ProviderRepository) ProviderService {
 }
 
 // Create implements ProviderService.
-func (p *providerService) Create(req *dto.ProviderRequest) (*entity.Provider, error) {
+func (p *providerService) Create(ctx context.Context, req *dto.ProviderRequest) (*entity.Provider, error) {
 	provider := &entity.Provider{
 		Name: req.Name,
 		Ref:  req.Ref,
 	}
 
-	if err := p.providerRepo.Create(provider); err != nil {
+	// Pass ctx to the repository call
+	if err := p.providerRepo.Create(ctx, provider); err != nil {
 		return nil, err
 	}
 
@@ -36,13 +40,15 @@ func (p *providerService) Create(req *dto.ProviderRequest) (*entity.Provider, er
 }
 
 // Delete implements ProviderService.
-func (p *providerService) Delete(id int64) (*entity.Provider, error) {
-	provider, err := p.providerRepo.FindByID(id)
+func (p *providerService) Delete(ctx context.Context, id int64) (*entity.Provider, error) {
+	// Pass ctx to the repository call
+	provider, err := p.providerRepo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := p.providerRepo.Delete(id); err != nil {
+	// Pass ctx to the repository call
+	if err := p.providerRepo.Delete(ctx, id); err != nil {
 		return nil, err
 	}
 
@@ -50,14 +56,15 @@ func (p *providerService) Delete(id int64) (*entity.Provider, error) {
 }
 
 // GetAll implements ProviderService.
-func (p *providerService) GetAll() ([]*entity.Provider, error) {
-	return p.providerRepo.FindAll()
+func (p *providerService) GetAll(ctx context.Context) ([]*entity.Provider, error) {
+	// Pass ctx to the repository call
+	return p.providerRepo.FindAll(ctx)
 }
 
 // Update implements ProviderService.
-func (p *providerService) Update(id int64, req *dto.ProviderUpdate) (*entity.Provider, error) {
-
-	provider, err := p.providerRepo.FindByID(id)
+func (p *providerService) Update(ctx context.Context, id int64, req *dto.ProviderUpdate) (*entity.Provider, error) {
+	// Pass ctx to the repository call
+	provider, err := p.providerRepo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +77,8 @@ func (p *providerService) Update(id int64, req *dto.ProviderUpdate) (*entity.Pro
 		provider.Ref = req.Ref
 	}
 
-	if err := p.providerRepo.Update(provider); err != nil {
+	// Pass ctx to the repository call
+	if err := p.providerRepo.Update(ctx, provider); err != nil {
 		return nil, err
 	}
 

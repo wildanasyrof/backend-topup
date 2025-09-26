@@ -30,7 +30,7 @@ func (p *PriceHandler) Create(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "validation error", err)
 	}
 
-	price, err := p.service.Create(&req)
+	price, err := p.service.Create(c.UserContext(), &req)
 
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed to create price", err.Error())
@@ -40,7 +40,7 @@ func (p *PriceHandler) Create(c *fiber.Ctx) error {
 }
 
 func (p *PriceHandler) GetAll(c *fiber.Ctx) error {
-	prices, err := p.service.GetAll()
+	prices, err := p.service.GetAll(c.Context())
 
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed to get prices", err.Error())
@@ -67,7 +67,7 @@ func (p *PriceHandler) Update(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "validation error", err)
 	}
 
-	price, err := p.service.Update(id, &req)
+	price, err := p.service.Update(c.UserContext(), id, &req)
 
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed to update price", err.Error())
@@ -84,7 +84,7 @@ func (p *PriceHandler) Delete(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "invalid params id", err.Error())
 	}
 
-	price, err := p.service.Delete(id)
+	price, err := p.service.Delete(c.UserContext(), id)
 
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed deleting price", err.Error())

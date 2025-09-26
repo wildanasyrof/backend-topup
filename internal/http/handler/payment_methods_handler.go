@@ -52,7 +52,7 @@ func (h *PaymentMethodsHandler) Create(c *fiber.Ctx) error {
 	req.ImgUrl = imgUrl
 
 	// ---- 5) Service call ----
-	res, err := h.service.Create(&req)
+	res, err := h.service.Create(c.UserContext(), &req)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "failed to create payment method", err.Error())
 	}
@@ -61,7 +61,7 @@ func (h *PaymentMethodsHandler) Create(c *fiber.Ctx) error {
 }
 
 func (h *PaymentMethodsHandler) GetAll(c *fiber.Ctx) error {
-	res, err := h.service.FindAll()
+	res, err := h.service.FindAll(c.Context())
 
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "failed to get payment methods", err.Error())
@@ -75,7 +75,7 @@ func (h *PaymentMethodsHandler) GetByID(c *fiber.Ctx) error {
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "invalid id parameter", err.Error())
 	}
-	res, err := h.service.FindByID(id)
+	res, err := h.service.FindByID(c.UserContext(), id)
 
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "failed to get payment method", err.Error())
@@ -113,7 +113,7 @@ func (h *PaymentMethodsHandler) Update(c *fiber.Ctx) error {
 	}
 
 	// ---- 5) Service call ----
-	res, err := h.service.Update(id, &req)
+	res, err := h.service.Update(c.UserContext(), id, &req)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "failed to update payment method", err.Error())
 	}
@@ -129,7 +129,7 @@ func (h *PaymentMethodsHandler) Delete(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "invalid id parameter", err.Error())
 	}
 
-	res, err := h.service.Delete(id)
+	res, err := h.service.Delete(c.UserContext(), id)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "failed to delete payment method", err.Error())
 	}

@@ -1,16 +1,18 @@
 package repository
 
 import (
+	"context"
+
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"gorm.io/gorm"
 )
 
 type UserRepository interface {
-	Store(user *entity.User) error
-	GetByEmail(email string) (*entity.User, error)
-	GetByID(id uint64) (*entity.User, error)
-	Update(user *entity.User) error
-	Destroy(id uint64) error
+	Store(ctx context.Context, user *entity.User) error
+	GetByEmail(ctx context.Context, email string) (*entity.User, error)
+	GetByID(ctx context.Context, id uint64) (*entity.User, error)
+	Update(ctx context.Context, user *entity.User) error
+	Destroy(ctx context.Context, id uint64) error
 }
 
 type userRepository struct {
@@ -24,14 +26,14 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 }
 
 // Destroy implements UserRepository.
-func (u *userRepository) Destroy(id uint64) error {
-	return u.db.Delete(&entity.User{}, id).Error
+func (u *userRepository) Destroy(ctx context.Context, id uint64) error {
+	return u.db.WithContext(ctx).Delete(&entity.User{}, id).Error
 }
 
 // GetByEmail implements UserRepository.
-func (u *userRepository) GetByEmail(email string) (*entity.User, error) {
+func (u *userRepository) GetByEmail(ctx context.Context, email string) (*entity.User, error) {
 	var user entity.User
-	err := u.db.Where("email = ?", email).First(&user).Error
+	err := u.db.WithContext(ctx).Where("email = ?", email).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -39,9 +41,9 @@ func (u *userRepository) GetByEmail(email string) (*entity.User, error) {
 }
 
 // GetByID implements UserRepository.
-func (u *userRepository) GetByID(id uint64) (*entity.User, error) {
+func (u *userRepository) GetByID(ctx context.Context, id uint64) (*entity.User, error) {
 	var user entity.User
-	err := u.db.Where("id = ?", id).First(&user).Error
+	err := u.db.WithContext(ctx).Where("id = ?", id).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -49,11 +51,11 @@ func (u *userRepository) GetByID(id uint64) (*entity.User, error) {
 }
 
 // Store implements UserRepository.
-func (u *userRepository) Store(user *entity.User) error {
-	return u.db.Create(user).Error
+func (u *userRepository) Store(ctx context.Context, user *entity.User) error {
+	return u.db.WithContext(ctx).Create(user).Error
 }
 
 // Update implements UserRepository.
-func (u *userRepository) Update(user *entity.User) error {
-	return u.db.Save(user).Error
+func (u *userRepository) Update(ctx context.Context, user *entity.User) error {
+	return u.db.WithContext(ctx).Save(user).Error
 }

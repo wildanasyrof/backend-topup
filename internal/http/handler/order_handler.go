@@ -35,7 +35,7 @@ func (o *OrderHandler) Create(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "validation error", err)
 	}
 
-	order, err := o.service.Create(uid, &req)
+	order, err := o.service.Create(c.UserContext(), uid, &req)
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed create order", err.Error())
 	}
@@ -54,7 +54,7 @@ func (o *OrderHandler) CreateGuest(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "validation error", err)
 	}
 
-	order, err := o.service.Create(2, &req)
+	order, err := o.service.Create(c.UserContext(), 2, &req)
 
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed create order", err.Error())
@@ -69,7 +69,7 @@ func (o *OrderHandler) GetByUserID(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusUnauthorized, "User ID not found", nil)
 	}
 
-	orders, err := o.service.GetByUserID(uid)
+	orders, err := o.service.GetByUserID(c.UserContext(), uid)
 
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "error get orders list", err)
@@ -81,7 +81,7 @@ func (o *OrderHandler) GetByUserID(c *fiber.Ctx) error {
 func (o *OrderHandler) GetByRef(c *fiber.Ctx) error {
 	ref := c.Params("ref")
 
-	order, err := o.service.GetByRef(ref)
+	order, err := o.service.GetByRef(c.UserContext(), ref)
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed to get order by ref", err.Error())
 	}
@@ -90,7 +90,7 @@ func (o *OrderHandler) GetByRef(c *fiber.Ctx) error {
 }
 
 func (o *OrderHandler) GetAll(c *fiber.Ctx) error {
-	orders, err := o.service.GetAll()
+	orders, err := o.service.GetAll(c.Context())
 
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed get orders", err.Error())

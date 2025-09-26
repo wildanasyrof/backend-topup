@@ -26,7 +26,7 @@ func (h *UserHandler) GetProfile(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusUnauthorized, "User ID not found", nil)
 	}
 
-	user, err := h.userService.GetUserByID(uid)
+	user, err := h.userService.GetUserByID(c.UserContext(), uid)
 
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to get user profile", err.Error())
@@ -54,7 +54,7 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Validation error", err)
 	}
 
-	user, err := h.userService.Update(uid, &req)
+	user, err := h.userService.Update(c.UserContext(), uid, &req)
 	if err != nil {
 		log.Println("Failed to update user:", err)
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update user", err.Error())

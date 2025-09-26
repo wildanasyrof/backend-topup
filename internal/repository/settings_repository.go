@@ -1,17 +1,19 @@
 package repository
 
 import (
+	"context"
+
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"gorm.io/gorm"
 )
 
 type SettingsRepository interface {
-	Create(req *entity.Settings) error
-	FindByName(name string) (*entity.Settings, error)
-	Update(settings *entity.Settings) error
-	Delete(settings *entity.Settings) error
-	FindAll() ([]*entity.Settings, error)
-	FindByID(id int) (*entity.Settings, error)
+	Create(ctx context.Context, req *entity.Settings) error
+	FindByName(ctx context.Context, name string) (*entity.Settings, error)
+	Update(ctx context.Context, settings *entity.Settings) error
+	Delete(ctx context.Context, settings *entity.Settings) error
+	FindAll(ctx context.Context) ([]*entity.Settings, error)
+	FindByID(ctx context.Context, id int) (*entity.Settings, error)
 }
 
 type settingsRepository struct {
@@ -25,19 +27,19 @@ func NewSettingsRepository(db *gorm.DB) SettingsRepository {
 }
 
 // Create implements SettingsRepository.
-func (s *settingsRepository) Create(req *entity.Settings) error {
-	return s.db.Create(req).Error
+func (s *settingsRepository) Create(ctx context.Context, req *entity.Settings) error {
+	return s.db.WithContext(ctx).Create(req).Error
 }
 
 // Delete implements SettingsRepository.
-func (s *settingsRepository) Delete(settings *entity.Settings) error {
-	return s.db.Delete(settings).Error
+func (s *settingsRepository) Delete(ctx context.Context, settings *entity.Settings) error {
+	return s.db.WithContext(ctx).Delete(settings).Error
 }
 
 // FindAll implements SettingsRepository.
-func (s *settingsRepository) FindAll() ([]*entity.Settings, error) {
+func (s *settingsRepository) FindAll(ctx context.Context) ([]*entity.Settings, error) {
 	var settings []*entity.Settings
-	if err := s.db.Find(&settings).Error; err != nil {
+	if err := s.db.WithContext(ctx).Find(&settings).Error; err != nil {
 		return nil, err
 	}
 
@@ -45,9 +47,9 @@ func (s *settingsRepository) FindAll() ([]*entity.Settings, error) {
 }
 
 // FindByID implements SettingsRepository.
-func (s *settingsRepository) FindByID(id int) (*entity.Settings, error) {
+func (s *settingsRepository) FindByID(ctx context.Context, id int) (*entity.Settings, error) {
 	var settings entity.Settings
-	if err := s.db.First(&settings, id).Error; err != nil {
+	if err := s.db.WithContext(ctx).First(&settings, id).Error; err != nil {
 		return nil, err
 	}
 
@@ -55,9 +57,9 @@ func (s *settingsRepository) FindByID(id int) (*entity.Settings, error) {
 }
 
 // FindByName implements SettingsRepository.
-func (s *settingsRepository) FindByName(name string) (*entity.Settings, error) {
+func (s *settingsRepository) FindByName(ctx context.Context, name string) (*entity.Settings, error) {
 	var settings entity.Settings
-	if err := s.db.Where("name = ?", name).First(&settings).Error; err != nil {
+	if err := s.db.WithContext(ctx).Where("name = ?", name).First(&settings).Error; err != nil {
 		return nil, err
 	}
 
@@ -65,6 +67,6 @@ func (s *settingsRepository) FindByName(name string) (*entity.Settings, error) {
 }
 
 // Update implements SettingsRepository.
-func (s *settingsRepository) Update(settings *entity.Settings) error {
-	return s.db.Save(settings).Error
+func (s *settingsRepository) Update(ctx context.Context, settings *entity.Settings) error {
+	return s.db.WithContext(ctx).Save(settings).Error
 }

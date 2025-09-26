@@ -1,17 +1,18 @@
 package repository
 
 import (
+	"context"
+
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"gorm.io/gorm"
 )
 
 type MenuRepository interface {
-	// Define your menu repository methods here
-	Create(req *entity.Menu) error
-	FindByID(id int64) (*entity.Menu, error)
-	FindAll() ([]*entity.Menu, error)
-	Update(req *entity.Menu) error
-	Delete(id int64) error
+	Create(ctx context.Context, req *entity.Menu) error
+	FindByID(ctx context.Context, id int64) (*entity.Menu, error)
+	FindAll(ctx context.Context) ([]*entity.Menu, error)
+	Update(ctx context.Context, req *entity.Menu) error
+	Delete(ctx context.Context, id int64) error
 }
 
 type menuRepository struct {
@@ -22,20 +23,17 @@ func NewMenuRepository(db *gorm.DB) MenuRepository {
 	return &menuRepository{db: db}
 }
 
-// Create implements MenuRepository.
-func (m *menuRepository) Create(req *entity.Menu) error {
-	return m.db.Create(req).Error
+func (m *menuRepository) Create(ctx context.Context, req *entity.Menu) error {
+	return m.db.WithContext(ctx).Create(req).Error
 }
 
-// Delete implements MenuRepository.
-func (m *menuRepository) Delete(id int64) error {
-	return m.db.Delete(&entity.Menu{}, id).Error
+func (m *menuRepository) Delete(ctx context.Context, id int64) error {
+	return m.db.WithContext(ctx).Delete(&entity.Menu{}, id).Error
 }
 
-// FindAll implements MenuRepository.
-func (m *menuRepository) FindAll() ([]*entity.Menu, error) {
+func (m *menuRepository) FindAll(ctx context.Context) ([]*entity.Menu, error) {
 	var menus []*entity.Menu
-	err := m.db.
+	err := m.db.WithContext(ctx).
 		Preload("Categories").
 		Find(&menus).Error
 	if err != nil {
@@ -45,17 +43,15 @@ func (m *menuRepository) FindAll() ([]*entity.Menu, error) {
 	return menus, nil
 }
 
-// FindByID implements MenuRepository.
-func (m *menuRepository) FindByID(id int64) (*entity.Menu, error) {
+func (m *menuRepository) FindByID(ctx context.Context, id int64) (*entity.Menu, error) {
 	var menu entity.Menu
-	err := m.db.Preload("Categories").Where("id = ?", id).First(&menu).Error
+	err := m.db.WithContext(ctx).Preload("Categories").Where("id = ?", id).First(&menu).Error
 	if err != nil {
 		return nil, err
 	}
 	return &menu, nil
 }
 
-// Update implements MenuRepository.
-func (m *menuRepository) Update(req *entity.Menu) error {
-	return m.db.Save(req).Error
+func (m *menuRepository) Update(ctx context.Context, req *entity.Menu) error {
+	return m.db.WithContext(ctx).Save(req).Error
 }

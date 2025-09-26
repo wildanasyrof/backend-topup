@@ -33,7 +33,7 @@ func (h *SettingsHandler) Create(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "validation error", err)
 	}
 
-	settings, err := h.settingsService.Create(&req)
+	settings, err := h.settingsService.Create(c.UserContext(), &req)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to create settings", err.Error())
 	}
@@ -43,7 +43,7 @@ func (h *SettingsHandler) Create(c *fiber.Ctx) error {
 }
 
 func (h *SettingsHandler) FindAll(c *fiber.Ctx) error {
-	settings, err := h.settingsService.FindAll()
+	settings, err := h.settingsService.FindAll(c.Context())
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch settings", err.Error())
 	}
@@ -68,7 +68,7 @@ func (h *SettingsHandler) Update(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "validation error", err)
 	}
 
-	settings, err := h.settingsService.Update(id, &req)
+	settings, err := h.settingsService.Update(c.UserContext(), id, &req)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update settings", err.Error())
 	}
@@ -84,7 +84,7 @@ func (h *SettingsHandler) Delete(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid Settings ID", err.Error())
 	}
 
-	settings, err := h.settingsService.Delete(id)
+	settings, err := h.settingsService.Delete(c.UserContext(), id)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete settings", err.Error())
 	}

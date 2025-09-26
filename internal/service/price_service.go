@@ -1,16 +1,18 @@
 package service
 
 import (
+	"context"
+
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"github.com/wildanasyrof/backend-topup/internal/repository"
 )
 
 type PriceService interface {
-	Create(req *dto.CreatePrice) (*entity.Price, error)
-	GetAll() ([]*entity.Price, error)
-	Update(id int, req *dto.UpdatePrice) (*entity.Price, error)
-	Delete(id int) (*entity.Price, error)
+	Create(ctx context.Context, req *dto.CreatePrice) (*entity.Price, error)
+	GetAll(ctx context.Context) ([]*entity.Price, error)
+	Update(ctx context.Context, id int, req *dto.UpdatePrice) (*entity.Price, error)
+	Delete(ctx context.Context, id int) (*entity.Price, error)
 }
 
 type priceService struct {
@@ -22,14 +24,14 @@ func NewPriceService(repo repository.PriceRepository) PriceService {
 }
 
 // Create implements PriceService.
-func (p *priceService) Create(req *dto.CreatePrice) (*entity.Price, error) {
+func (p *priceService) Create(ctx context.Context, req *dto.CreatePrice) (*entity.Price, error) {
 	price := &entity.Price{
 		ProductID:   req.ProductID,
 		UserLevelID: req.UserLevelID,
 		Price:       req.Price,
 	}
 
-	if err := p.repo.Create(price); err != nil {
+	if err := p.repo.Create(ctx, price); err != nil {
 		return nil, err
 	}
 
@@ -37,14 +39,13 @@ func (p *priceService) Create(req *dto.CreatePrice) (*entity.Price, error) {
 }
 
 // Delete implements PriceService.
-func (p *priceService) Delete(id int) (*entity.Price, error) {
-	price, err := p.repo.FindByID(id)
-
+func (p *priceService) Delete(ctx context.Context, id int) (*entity.Price, error) {
+	price, err := p.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := p.repo.Delete(id); err != nil {
+	if err := p.repo.Delete(ctx, id); err != nil {
 		return nil, err
 	}
 
@@ -52,24 +53,22 @@ func (p *priceService) Delete(id int) (*entity.Price, error) {
 }
 
 // GetAll implements PriceService.
-func (p *priceService) GetAll() ([]*entity.Price, error) {
-	return p.repo.FindAll()
+func (p *priceService) GetAll(ctx context.Context) ([]*entity.Price, error) {
+	return p.repo.FindAll(ctx)
 }
 
 // Update implements PriceService.
-func (p *priceService) Update(id int, req *dto.UpdatePrice) (*entity.Price, error) {
-	price, err := p.repo.FindByID(id)
-
+func (p *priceService) Update(ctx context.Context, id int, req *dto.UpdatePrice) (*entity.Price, error) {
+	price, err := p.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
 	req.ToEntity(price)
 
-	if err := p.repo.Update(price); err != nil {
+	if err := p.repo.Update(ctx, price); err != nil {
 		return nil, err
 	}
 
 	return price, nil
-
 }

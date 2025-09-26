@@ -1,16 +1,18 @@
 package service
 
 import (
+	"context"
+
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"github.com/wildanasyrof/backend-topup/internal/repository"
 )
 
 type ProductService interface {
-	Create(req *dto.ProductCreateRequest) (*entity.Product, error)
-	GetAll() ([]*entity.Product, error)
-	Update(id int, req *dto.ProductUpdateRequest) (*entity.Product, error)
-	Delete(id int) (*entity.Product, error)
+	Create(ctx context.Context, req *dto.ProductCreateRequest) (*entity.Product, error)
+	GetAll(ctx context.Context) ([]*entity.Product, error)
+	Update(ctx context.Context, id int, req *dto.ProductUpdateRequest) (*entity.Product, error)
+	Delete(ctx context.Context, id int) (*entity.Product, error)
 }
 
 type productService struct {
@@ -22,7 +24,7 @@ func NewProductRepository(repo repository.ProductRepository) ProductService {
 }
 
 // Create implements ProductService.
-func (p *productService) Create(req *dto.ProductCreateRequest) (*entity.Product, error) {
+func (p *productService) Create(ctx context.Context, req *dto.ProductCreateRequest) (*entity.Product, error) {
 	product := &entity.Product{
 		Name:        req.Name,
 		CategoryID:  int(req.CategoryID),
@@ -32,7 +34,7 @@ func (p *productService) Create(req *dto.ProductCreateRequest) (*entity.Product,
 		ImgUrl:      req.ImgURL,
 	}
 
-	if err := p.repo.Create(product); err != nil {
+	if err := p.repo.Create(ctx, product); err != nil {
 		return nil, err
 	}
 
@@ -40,37 +42,36 @@ func (p *productService) Create(req *dto.ProductCreateRequest) (*entity.Product,
 }
 
 // Delete implements ProductService.
-func (p *productService) Delete(id int) (*entity.Product, error) {
-	product, err := p.repo.FindByID(id)
-
+func (p *productService) Delete(ctx context.Context, id int) (*entity.Product, error) {
+	product, err := p.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := p.repo.Delete(id); err != nil {
+	if err := p.repo.Delete(ctx, id); err != nil {
 		return nil, err
 	}
 
-	return product, err
+	return product, nil
 }
 
 // GetAll implements ProductService.
-func (p *productService) GetAll() ([]*entity.Product, error) {
-	return p.repo.FindAll()
+func (p *productService) GetAll(ctx context.Context) ([]*entity.Product, error) {
+	return p.repo.FindAll(ctx)
 }
 
 // Update implements ProductService.
-func (p *productService) Update(id int, req *dto.ProductUpdateRequest) (*entity.Product, error) {
-	product, err := p.repo.FindByID(id)
+func (p *productService) Update(ctx context.Context, id int, req *dto.ProductUpdateRequest) (*entity.Product, error) {
+	product, err := p.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
 	req.ToEntity(product)
 
-	if err := p.repo.Update(product); err != nil {
+	if err := p.repo.Update(ctx, product); err != nil {
 		return nil, err
 	}
 
-	return product, err
+	return product, nil
 }

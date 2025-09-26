@@ -15,9 +15,10 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port      string
-	Env       string
-	UploadDir string
+	Port           string
+	RequestTimeOut int
+	Env            string
+	UploadDir      string
 }
 
 type DatabaseConfig struct {
@@ -56,6 +57,11 @@ func LoadConfig() (*Config, error) {
 		return 0, nil
 	}
 
+	requestTimeOut, err := getEnvAsInt("HTTP_REQUEST_TIME_OUT")
+	if err != nil {
+		log.Fatal("HTTP_REQUEST_TIME_OUT must be a valid integer")
+	}
+
 	accessTokenMinutes, err := getEnvAsInt("ACCESS_TOKEN_MINUTES")
 	if err != nil {
 		log.Fatal("ACCESS_TOKEN_MINUTES must be a valid integer")
@@ -68,9 +74,10 @@ func LoadConfig() (*Config, error) {
 
 	cfg := &Config{
 		Server: ServerConfig{
-			Port:      getEnv("PORT", "8080"),
-			Env:       getEnv("ENV", "development"),
-			UploadDir: getEnv("UPLOAD_DIR", "./uploads"),
+			Port:           getEnv("PORT", "8080"),
+			RequestTimeOut: requestTimeOut,
+			Env:            getEnv("ENV", "development"),
+			UploadDir:      getEnv("UPLOAD_DIR", "./uploads"),
 		},
 		Db: DatabaseConfig{
 			DbUrl: getEnv("DATABASE_URL", ""),

@@ -1,17 +1,19 @@
 package service
 
 import (
+	"context"
+
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"github.com/wildanasyrof/backend-topup/internal/repository"
 )
 
 type PaymentMethodsService interface {
-	FindAll() ([]*entity.PaymentMethod, error)
-	Create(req *dto.CreatePaymentMethodRequest) (*entity.PaymentMethod, error)
-	Delete(id uint64) (*entity.PaymentMethod, error)
-	Update(id uint64, req *dto.UpdatePaymentMethodRequest) (*entity.PaymentMethod, error)
-	FindByID(id uint64) (*entity.PaymentMethod, error)
+	FindAll(ctx context.Context) ([]*entity.PaymentMethod, error)
+	Create(ctx context.Context, req *dto.CreatePaymentMethodRequest) (*entity.PaymentMethod, error)
+	Delete(ctx context.Context, id uint64) (*entity.PaymentMethod, error)
+	Update(ctx context.Context, id uint64, req *dto.UpdatePaymentMethodRequest) (*entity.PaymentMethod, error)
+	FindByID(ctx context.Context, id uint64) (*entity.PaymentMethod, error)
 }
 
 type paymentMethodsService struct {
@@ -23,7 +25,7 @@ func NewPaymentMethodsService(repo repository.PaymentMethodsRepository) PaymentM
 }
 
 // Create implements PaymentMethodsService.
-func (p *paymentMethodsService) Create(req *dto.CreatePaymentMethodRequest) (*entity.PaymentMethod, error) {
+func (p *paymentMethodsService) Create(ctx context.Context, req *dto.CreatePaymentMethodRequest) (*entity.PaymentMethod, error) {
 	data := &entity.PaymentMethod{
 		Name:       req.Name,
 		Type:       req.Type,
@@ -33,7 +35,7 @@ func (p *paymentMethodsService) Create(req *dto.CreatePaymentMethodRequest) (*en
 		Percent:    req.Percent,
 	}
 
-	if err := p.repo.Create(data); err != nil {
+	if err := p.repo.Create(ctx, data); err != nil {
 		return nil, err
 	}
 
@@ -41,13 +43,13 @@ func (p *paymentMethodsService) Create(req *dto.CreatePaymentMethodRequest) (*en
 }
 
 // Delete implements PaymentMethodsService.
-func (p *paymentMethodsService) Delete(id uint64) (*entity.PaymentMethod, error) {
-	data, err := p.repo.FindByID(id)
+func (p *paymentMethodsService) Delete(ctx context.Context, id uint64) (*entity.PaymentMethod, error) {
+	data, err := p.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := p.repo.Delete(data.ID); err != nil {
+	if err := p.repo.Delete(ctx, data.ID); err != nil {
 		return nil, err
 	}
 
@@ -55,25 +57,25 @@ func (p *paymentMethodsService) Delete(id uint64) (*entity.PaymentMethod, error)
 }
 
 // FindAll implements PaymentMethodsService.
-func (p *paymentMethodsService) FindAll() ([]*entity.PaymentMethod, error) {
-	return p.repo.FindAll()
+func (p *paymentMethodsService) FindAll(ctx context.Context) ([]*entity.PaymentMethod, error) {
+	return p.repo.FindAll(ctx)
 }
 
 // FindByID implements PaymentMethodsService.
-func (p *paymentMethodsService) FindByID(id uint64) (*entity.PaymentMethod, error) {
-	return p.repo.FindByID(id)
+func (p *paymentMethodsService) FindByID(ctx context.Context, id uint64) (*entity.PaymentMethod, error) {
+	return p.repo.FindByID(ctx, id)
 }
 
 // Update implements PaymentMethodsService.
-func (p *paymentMethodsService) Update(id uint64, req *dto.UpdatePaymentMethodRequest) (*entity.PaymentMethod, error) {
-	data, err := p.repo.FindByID(id)
+func (p *paymentMethodsService) Update(ctx context.Context, id uint64, req *dto.UpdatePaymentMethodRequest) (*entity.PaymentMethod, error) {
+	data, err := p.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
 	req.ApplyTo(data)
 
-	if err := p.repo.Update(data); err != nil {
+	if err := p.repo.Update(ctx, data); err != nil {
 		return nil, err
 	}
 

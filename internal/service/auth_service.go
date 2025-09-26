@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
@@ -11,8 +12,8 @@ import (
 )
 
 type AuthService interface {
-	Register(req *dto.RegisterUserRequest) (*entity.User, error)
-	Login(req *dto.LoginUserRequest) (*entity.User, string, error)
+	Register(ctx context.Context, req *dto.RegisterUserRequest) (*entity.User, error)
+	Login(ctx context.Context, req *dto.LoginUserRequest) (*entity.User, string, error)
 }
 
 type authService struct {
@@ -28,8 +29,8 @@ func NewAuthService(userRepository repository.UserRepository, jwtService jwt.JWT
 }
 
 // Login implements AuthService.
-func (a *authService) Login(req *dto.LoginUserRequest) (*entity.User, string, error) {
-	user, err := a.userRepository.GetByEmail(req.Email)
+func (a *authService) Login(ctx context.Context, req *dto.LoginUserRequest) (*entity.User, string, error) {
+	user, err := a.userRepository.GetByEmail(ctx, req.Email)
 
 	if err != nil && user == nil {
 		return nil, "", errors.New("invalid credential")
@@ -45,11 +46,10 @@ func (a *authService) Login(req *dto.LoginUserRequest) (*entity.User, string, er
 	}
 
 	return user, token.AccessToken, nil
-
 }
 
 // Register implements AuthService.
-func (a *authService) Register(req *dto.RegisterUserRequest) (*entity.User, error) {
+func (a *authService) Register(ctx context.Context, req *dto.RegisterUserRequest) (*entity.User, error) {
 	hashedPassword := hash.HashPassword(req.Password)
 
 	user := &entity.User{
@@ -58,7 +58,7 @@ func (a *authService) Register(req *dto.RegisterUserRequest) (*entity.User, erro
 		PasswordHash: hashedPassword,
 	}
 
-	if err := a.userRepository.Store(user); err != nil {
+	if err := a.userRepository.Store(ctx, user); err != nil {
 		return nil, err
 	}
 

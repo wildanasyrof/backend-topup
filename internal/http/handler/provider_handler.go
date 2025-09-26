@@ -33,7 +33,7 @@ func (h *ProviderHandler) Create(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "validation error", err)
 	}
 
-	provider, err := h.service.Create(&req)
+	provider, err := h.service.Create(c.UserContext(), &req)
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed to create menu", err.Error())
 	}
@@ -42,7 +42,7 @@ func (h *ProviderHandler) Create(c *fiber.Ctx) error {
 }
 
 func (h *ProviderHandler) GetAll(c *fiber.Ctx) error {
-	providers, err := h.service.GetAll()
+	providers, err := h.service.GetAll(c.Context())
 
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed to get list prvoider", err.Error())
@@ -69,7 +69,7 @@ func (h *ProviderHandler) Update(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "validation error", err)
 	}
 
-	provider, err := h.service.Update(int64(id), &req)
+	provider, err := h.service.Update(c.UserContext(), int64(id), &req)
 
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed to update provider", err.Error())
@@ -87,7 +87,7 @@ func (h *ProviderHandler) Delete(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid menu ID", err.Error())
 	}
 
-	provider, err := h.service.Delete(int64(id))
+	provider, err := h.service.Delete(c.UserContext(), int64(id))
 
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "failed to delete provider", err.Error())

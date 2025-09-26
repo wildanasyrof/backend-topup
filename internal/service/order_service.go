@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
@@ -11,11 +12,11 @@ import (
 )
 
 type OrderService interface {
-	Create(userId uint64, req *dto.CreateOrder) (*entity.Order, error)
-	GetAll() ([]*entity.Order, error)
-	GetByRef(ref string) (*entity.Order, error)
-	Update(ref string, req *dto.UpdateOrder) (*entity.Order, error)
-	GetByUserID(userId uint64) ([]*entity.Order, error)
+	Create(ctx context.Context, userId uint64, req *dto.CreateOrder) (*entity.Order, error)
+	GetAll(ctx context.Context) ([]*entity.Order, error)
+	GetByRef(ctx context.Context, ref string) (*entity.Order, error)
+	Update(ctx context.Context, ref string, req *dto.UpdateOrder) (*entity.Order, error)
+	GetByUserID(ctx context.Context, userId uint64) ([]*entity.Order, error)
 }
 
 type orderService struct {
@@ -30,14 +31,13 @@ func NewOrderService(orderRepo repository.OrderRepository, logger logger.Logger,
 }
 
 // Create implements OrderService.
-func (o *orderService) Create(userId uint64, req *dto.CreateOrder) (*entity.Order, error) {
-
-	user, err := o.userRepo.GetByID(userId)
+func (o *orderService) Create(ctx context.Context, userId uint64, req *dto.CreateOrder) (*entity.Order, error) {
+	user, err := o.userRepo.GetByID(ctx, userId)
 	if err != nil {
 		return nil, errors.New("error processing user")
 	}
 
-	price, err := o.priceRepo.FindByProductIDnUserLevelID(req.ProductID, user.UserLevelID)
+	price, err := o.priceRepo.FindByProductIDnUserLevelID(ctx, req.ProductID, user.UserLevelID)
 	if err != nil {
 		return nil, errors.New("product not found")
 	}
@@ -55,7 +55,7 @@ func (o *orderService) Create(userId uint64, req *dto.CreateOrder) (*entity.Orde
 		Fee:          500,
 	}
 
-	if err := o.orderRepo.Create(order); err != nil {
+	if err := o.orderRepo.Create(ctx, order); err != nil {
 		return nil, err
 	}
 
@@ -63,21 +63,21 @@ func (o *orderService) Create(userId uint64, req *dto.CreateOrder) (*entity.Orde
 }
 
 // GetAll implements OrderService.
-func (o *orderService) GetAll() ([]*entity.Order, error) {
-	return o.orderRepo.FindAll()
+func (o *orderService) GetAll(ctx context.Context) ([]*entity.Order, error) {
+	return o.orderRepo.FindAll(ctx)
 }
 
-// GetAll implements OrderService.
-func (o *orderService) GetByUserID(userId uint64) ([]*entity.Order, error) {
-	return o.orderRepo.FindByUserID(int64(userId))
+// GetByUserID implements OrderService.
+func (o *orderService) GetByUserID(ctx context.Context, userId uint64) ([]*entity.Order, error) {
+	return o.orderRepo.FindByUserID(ctx, int64(userId))
 }
 
 // GetByRef implements OrderService.
-func (o *orderService) GetByRef(ref string) (*entity.Order, error) {
-	return o.orderRepo.FindByRef(ref)
+func (o *orderService) GetByRef(ctx context.Context, ref string) (*entity.Order, error) {
+	return o.orderRepo.FindByRef(ctx, ref)
 }
 
 // Update implements OrderService.
-func (o *orderService) Update(ref string, req *dto.UpdateOrder) (*entity.Order, error) {
+func (o *orderService) Update(ctx context.Context, ref string, req *dto.UpdateOrder) (*entity.Order, error) {
 	panic("unimplemented")
 }

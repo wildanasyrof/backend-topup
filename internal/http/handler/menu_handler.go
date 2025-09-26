@@ -20,7 +20,7 @@ func NewMenuHandler(menuService service.MenuService, validator validator.Validat
 }
 
 func (h *MenuHandler) GetAll(c *fiber.Ctx) error {
-	menus, err := h.menuService.GetAll()
+	menus, err := h.menuService.GetAll(c.Context())
 
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to get menus", err.Error())
@@ -35,7 +35,7 @@ func (h *MenuHandler) GetByID(c *fiber.Ctx) error {
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid menu ID", err.Error())
 	}
-	menu, err := h.menuService.GetByID(id)
+	menu, err := h.menuService.GetByID(c.UserContext(), id)
 
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to get menu", err.Error())
@@ -55,7 +55,7 @@ func (h *MenuHandler) Create(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Validation error", err)
 	}
 
-	menu, err := h.menuService.Create(&req)
+	menu, err := h.menuService.Create(c.UserContext(), &req)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to create menu", err.Error())
 	}
@@ -81,7 +81,7 @@ func (h *MenuHandler) Update(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid menu ID", err.Error())
 	}
 
-	menu, errc := h.menuService.Update(id, &req)
+	menu, errc := h.menuService.Update(c.UserContext(), id, &req)
 
 	if errc != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update menu", errc.Error())
@@ -98,7 +98,7 @@ func (h *MenuHandler) Delete(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid menu ID", err.Error())
 	}
 
-	menu, err := h.menuService.Delete(id)
+	menu, err := h.menuService.Delete(c.UserContext(), id)
 
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete menu", err.Error())
