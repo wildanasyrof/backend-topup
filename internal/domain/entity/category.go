@@ -1,5 +1,7 @@
 package entity
 
+import "time"
+
 type Type string
 type CatStatus string
 
@@ -26,8 +28,8 @@ type Category struct {
 	InputType   string    `json:"input_type" gorm:"type:varchar(255);not null"`
 	ImgUrl      string    `json:"img_url" gorm:"not null"`
 	IsLogin     bool      `json:"is_login"`
-	CreatedAt   int64     `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt   int64     `json:"updated_at" gorm:"autoUpdateTime"`
+	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt   time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 
 	Menu     Menu     `json:"-" gorm:"foreignKey:MenuID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
 	Provider Provider `json:"-" gorm:"foreignKey:ProviderID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`

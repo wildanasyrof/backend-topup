@@ -48,7 +48,7 @@ func (p *productRepository) FindAll(ctx context.Context, q dto.ProductListQuery)
 	filtered := base.
 		Scopes(
 			ProductFilters(q.ProviderID, q.CategoryID, q.LevelID, q.Active),
-			ILike([]string{"products.name", "products.code"}, q.Q),
+			ILike([]string{"products.name"}, q.Q),
 		)
 
 	var total int64
