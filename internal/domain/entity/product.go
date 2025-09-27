@@ -11,6 +11,7 @@ type Product struct {
 	ProviderID  int64     `json:"provider_id" gorm:"not null"`
 	Status      CatStatus `json:"status" gorm:"type:text;not null;default:inactive;check:cat_status_check,status IN ('inactive','active','problem')"`
 	Stock       int64     `json:"stock" gorm:"not null"`
+	BasePrice   float64   `json:"-" gorm:"not null;"`
 	Description string    `json:"description"`
 	ImgUrl      string    `json:"img_url" gorm:"not null"`
 	StartOff    string    `json:"start_off"`

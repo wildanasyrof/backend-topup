@@ -134,23 +134,24 @@ WHERE NOT EXISTS (SELECT 1 FROM categories WHERE slug=$5::text);
 	type Prod struct {
 		Name, Sku, Seller, CatSlug, ProviderRef, Status, Desc, Img, StartOff, EndOff string
 		Stock                                                                        int64
+		BasePrice                                                                    float64
 	}
 	prods := []Prod{
 		// Pulsa / Data / PDAM
-		{"Pulsa 25K", "PULSA-25K", "TopUp Demo", "pulsa-prabayar", "digiflazz", "active", "Pulsa prabayar nominal 25.000", "https://example.com/img/pulsa25k.png", "", "", 99999},
-		{"Data 5GB", "DATA-5GB-30D", "TopUp Demo", "data-internet", "digiflazz", "active", "Paket data 5GB 30 hari", "https://example.com/img/data5gb.png", "", "", 99999},
-		{"PDAM Kota A", "PDAM-KOTA-A", "TopUp Demo", "pdam", "xpay", "active", "Pembayaran tagihan PDAM Kota A", "https://example.com/img/pdam.png", "", "", 99999},
+		{"Pulsa 25K", "PULSA-25K", "TopUp Demo", "pulsa-prabayar", "digiflazz", "active", "Pulsa prabayar nominal 25.000", "https://example.com/img/pulsa25k.png", "", "", 99999, 25000},
+		{"Data 5GB", "DATA-5GB-30D", "TopUp Demo", "data-internet", "digiflazz", "active", "Paket data 5GB 30 hari", "https://example.com/img/data5gb.png", "", "", 99999, 30000},
+		{"PDAM Kota A", "PDAM-KOTA-A", "TopUp Demo", "pdam", "xpay", "active", "Pembayaran tagihan PDAM Kota A", "https://example.com/img/pdam.png", "", "", 99999, 50000},
 
 		// Online Games
-		{"Mobile Legends Diamonds 86", "ML-86", "TopUp Demo", "online-games", "digiflazz", "active", "Top-up Mobile Legends 86 Diamonds", "https://example.com/img/ml-86.png", "00:00", "23:59", 99999},
-		{"Free Fire Diamonds 100", "FF-100", "TopUp Demo", "online-games", "digiflazz", "active", "Top-up Free Fire 100 Diamonds", "https://example.com/img/ff-100.png", "00:00", "23:59", 99999},
-		{"PUBG Mobile UC 60", "PUBG-60", "TopUp Demo", "online-games", "xpay", "active", "Top-up PUBG Mobile 60 UC", "https://example.com/img/pubg-60.png", "00:00", "23:59", 99999},
+		{"Mobile Legends Diamonds 86", "ML-86", "TopUp Demo", "online-games", "digiflazz", "active", "Top-up Mobile Legends 86 Diamonds", "https://example.com/img/ml-86.png", "00:00", "23:59", 99999, 20000},
+		{"Free Fire Diamonds 100", "FF-100", "TopUp Demo", "online-games", "digiflazz", "active", "Top-up Free Fire 100 Diamonds", "https://example.com/img/ff-100.png", "00:00", "23:59", 99999, 25000},
+		{"PUBG Mobile UC 60", "PUBG-60", "TopUp Demo", "online-games", "xpay", "active", "Top-up PUBG Mobile 60 UC", "https://example.com/img/pubg-60.png", "00:00", "23:59", 99999, 30000},
 	}
 
 	for _, p := range prods {
 		if err := exec(tx, `
 INSERT INTO products
-(name, sku_code, seller_name, category_id, provider_id, status, stock, description, img_url, start_off, end_off, created_at, updated_at)
+(name, sku_code, seller_name, category_id, provider_id, status, stock, base_price, description, img_url, start_off, end_off, created_at, updated_at)
 SELECT
   $1::text,  -- name
   $2::text,  -- sku_code
@@ -159,13 +160,14 @@ SELECT
   (SELECT id FROM providers  WHERE ref=$5::text),  -- provider_id
   $6::text,               -- status
   $7::bigint,             -- stock
-  $8::text,               -- description
-  $9::text,               -- img_url
-  $10::text,              -- start_off
-  $11::text,              -- end_off
-  $12, $12                -- created_at, updated_at
+  $8::numeric,             -- base price
+  $9::text,               -- description
+  $10::text,               -- img_url
+  $11::text,              -- start_off
+  $12::text,              -- end_off
+  $13, $13                -- created_at, updated_at
 WHERE NOT EXISTS (SELECT 1 FROM products WHERE sku_code=$2::text);
-`, p.Name, p.Sku, p.Seller, p.CatSlug, p.ProviderRef, p.Status, p.Stock, p.Desc, p.Img, p.StartOff, p.EndOff, now); err != nil {
+`, p.Name, p.Sku, p.Seller, p.CatSlug, p.ProviderRef, p.Status, p.Stock, p.BasePrice, p.Desc, p.Img, p.StartOff, p.EndOff, now); err != nil {
 			return fmt.Errorf("insert product %q: %w", p.Name, err)
 		}
 	}
