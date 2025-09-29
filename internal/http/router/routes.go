@@ -4,12 +4,14 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/wildanasyrof/backend-topup/internal/config"
 	"github.com/wildanasyrof/backend-topup/internal/di"
 	"github.com/wildanasyrof/backend-topup/internal/http/middleware"
 )
 
 func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
+	app.Use(cors.New())
 	app.Use(middleware.LoggerMiddleware(di.Logger))
 	app.Use(middleware.TimeoutMiddleware(time.Duration(cfg.Server.RequestTimeOut) * time.Second))
 
