@@ -11,6 +11,7 @@ import (
 	"github.com/wildanasyrof/backend-topup/internal/service"
 	"github.com/wildanasyrof/backend-topup/pkg/jwt"
 	logger "github.com/wildanasyrof/backend-topup/pkg/logger"
+	"github.com/wildanasyrof/backend-topup/pkg/oauth"
 	"github.com/wildanasyrof/backend-topup/pkg/storage"
 	"github.com/wildanasyrof/backend-topup/pkg/validator"
 	"gorm.io/gorm"
@@ -22,6 +23,8 @@ type DI struct {
 	Jwt                   jwt.JWTService
 	Storage               storage.LocalStorage
 	HTTPClient            *http.Client
+	OauthPkg              *oauth.GoogleOauthPkg
+	DevStore              *oauth.DevStore
 	AuthHandler           *handler.AuthHandler
 	UserHandler           *handler.UserHandler
 	MenuHandler           *handler.MenuHandler
@@ -43,13 +46,14 @@ func InitDI(cfg *config.Config) *DI {
 	jwt := jwt.NewJWTService(cfg)
 	storage := storage.NewLocalStorage(cfg)
 	httpClient := &http.Client{Timeout: time.Duration(cfg.Server.RequestTimeOut) * time.Second}
+	devStore := oauth.NewDevStore(5 * time.Minute)
+	oauth := oauth.NewGoogleOauthPkg(cfg)
 
 	userRepo := repository.NewUserRepository(DB)
 	authService := service.NewAuthService(userRepo, jwt)
-	authHandler := handler.NewAuthHandler(authService, validator)
-
 	userService := service.NewUserService(userRepo)
 	userHandler := handler.NewUserHandler(userService, validator)
+	authHandler := handler.NewAuthHandler(authService, userService, *oauth, devStore, validator)
 
 	menuRepo := repository.NewMenuRepository(DB)
 	menuService := service.NewMenuService(menuRepo)
@@ -98,6 +102,8 @@ func InitDI(cfg *config.Config) *DI {
 		Jwt:                   jwt,
 		Storage:               storage,
 		HTTPClient:            httpClient,
+		OauthPkg:              oauth,
+		DevStore:              &devStore,
 		AuthHandler:           authHandler,
 		UserHandler:           userHandler,
 		MenuHandler:           menuHandler,

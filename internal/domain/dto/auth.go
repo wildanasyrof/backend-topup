@@ -14,3 +14,11 @@ type LoginUserRequest struct {
 type TokenResponse struct {
 	AccessToken string `json:"access_token"`
 }
+
+type GoogleLoginResponse struct {
+	Sub           string `json:"sub"`
+	Email         string `json:"email"`
+	EmailVerified bool   `json:"email_verified"`
+	Name          string `json:"name"`
+	Picture       string `json:"picture"`
+}

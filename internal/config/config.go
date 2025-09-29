@@ -12,6 +12,7 @@ type Config struct {
 	Server ServerConfig
 	Db     DatabaseConfig
 	JWT    JwtConfig
+	Oauth  GoogleOauthConfig
 }
 
 type ServerConfig struct {
@@ -19,6 +20,12 @@ type ServerConfig struct {
 	RequestTimeOut int
 	Env            string
 	UploadDir      string
+}
+
+type GoogleOauthConfig struct {
+	ClientID     string
+	ClientSecret string
+	CallbackUrl  string
 }
 
 type DatabaseConfig struct {
@@ -86,6 +93,11 @@ func LoadConfig() (*Config, error) {
 			JWTSecret:          getEnv("JWT_SECRET", ""),
 			AccessTokenMinutes: accessTokenMinutes,
 			RefreshTokenDays:   refreshTokenDays,
+		},
+		Oauth: GoogleOauthConfig{
+			ClientID:     getEnv("GOOGLE_OAUTH_CLIENT_ID", "719094701967-kfms9f9b27pahl58a64lm1uj5bq9b1sk.apps.googleusercontent.com"),
+			ClientSecret: getEnv("GOOGLE_OAUTH_SECRET_ID", "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"),
+			CallbackUrl:  getEnv("GOOGLE_OAUTH_CALLBACK_URL", ""),
 		},
 	}
 

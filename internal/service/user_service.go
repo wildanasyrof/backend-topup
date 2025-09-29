@@ -11,6 +11,8 @@ import (
 // UserService interface updated to include context.Context
 type UserService interface {
 	GetUserByID(ctx context.Context, userID uint64) (*entity.User, error)
+	FindUserByGoogleID(ctx context.Context, id string) (*entity.User, error)
+	FindUserByEmail(ctx context.Context, email string) (*entity.User, error)
 	Update(ctx context.Context, userID uint64, req *dto.UpdateUserRequest) (*entity.User, error)
 }
 
@@ -20,6 +22,16 @@ type userService struct {
 
 func NewUserService(userRepositry repository.UserRepository) UserService {
 	return &userService{userRepository: userRepositry}
+}
+
+// FindUserByEmail implements UserService.
+func (s *userService) FindUserByEmail(ctx context.Context, email string) (*entity.User, error) {
+	user, err := s.userRepository.GetByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, err
 }
 
 func (s *userService) GetUserByID(ctx context.Context, id uint64) (*entity.User, error) {
@@ -54,4 +66,15 @@ func (s *userService) Update(ctx context.Context, userID uint64, req *dto.Update
 	}
 
 	return user, nil
+}
+
+// FindUserByGoogleID implements AuthService.
+func (a *userService) FindUserByGoogleID(ctx context.Context, id string) (*entity.User, error) {
+	user, err := a.userRepository.FindByGoogleID(ctx, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return user, err
 }

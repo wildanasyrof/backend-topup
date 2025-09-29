@@ -14,6 +14,8 @@ import (
 type AuthService interface {
 	Register(ctx context.Context, req *dto.RegisterUserRequest) (*entity.User, error)
 	Login(ctx context.Context, req *dto.LoginUserRequest) (*entity.User, string, error)
+	RegisterByGoogle(ctx context.Context, userInfo *dto.GoogleLoginResponse) (*entity.User, error)
+	GenerateToken(id uint64, role string) (*dto.TokenResponse, error)
 }
 
 type authService struct {
@@ -26,6 +28,21 @@ func NewAuthService(userRepository repository.UserRepository, jwtService jwt.JWT
 		userRepository: userRepository,
 		jwtService:     jwtService,
 	}
+}
+
+// RegisterByGoogle implements AuthService.
+func (a *authService) RegisterByGoogle(ctx context.Context, userInfo *dto.GoogleLoginResponse) (*entity.User, error) {
+	user := &entity.User{
+		GoogleID:   userInfo.Sub,
+		Name:       userInfo.Name,
+		IsVerified: userInfo.EmailVerified,
+	}
+
+	if err := a.userRepository.Store(ctx, user); err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
 // Login implements AuthService.
