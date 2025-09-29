@@ -13,4 +13,5 @@ func ProductRouter(r fiber.Router, di *di.DI) {
 	r.Post("/", di.ProductHandler.Create)
 	r.Put("/:id", di.ProductHandler.Update)
 	r.Delete("/:id", di.ProductHandler.Delete)
+	r.Get("/df", di.ProductHandler.DFUpdate)
 }

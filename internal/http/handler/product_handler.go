@@ -16,15 +16,17 @@ import (
 
 type ProductHandler struct {
 	service   service.ProductService
+	exSvc     service.ExternalService
 	validator validator.Validator
 	storage   storage.LocalStorage
 }
 
-func NewProductHandler(service service.ProductService, validator validator.Validator, storage storage.LocalStorage) *ProductHandler {
+func NewProductHandler(service service.ProductService, validator validator.Validator, storage storage.LocalStorage, exSvc service.ExternalService) *ProductHandler {
 	return &ProductHandler{
 		service:   service,
 		validator: validator,
 		storage:   storage,
+		exSvc:     exSvc,
 	}
 }
 
@@ -134,4 +136,14 @@ func (p *ProductHandler) Delete(c *fiber.Ctx) error {
 	}
 
 	return response.Success(c, "success deleted product", product)
+}
+
+func (p *ProductHandler) DFUpdate(c *fiber.Ctx) error {
+	data, err := p.exSvc.DFSaveProductList(c.UserContext())
+
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "failed fetching api", err.Error())
+	}
+
+	return response.Success(c, "success updating product", data)
 }

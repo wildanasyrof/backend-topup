@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
@@ -13,8 +14,10 @@ type ProductRepository interface {
 	Create(ctx context.Context, req *entity.Product) error
 	FindAll(ctx context.Context, q dto.ProductListQuery) (items []entity.Product, meta pagination.Meta, err error)
 	FindByID(ctx context.Context, id int) (*entity.Product, error)
+	FindByCode(ctx context.Context, code string) (*entity.Product, error)
 	Update(ctx context.Context, req *entity.Product) error
 	Delete(ctx context.Context, id int) error
+	UpsertProductByCode(ctx context.Context, req *entity.Product) error
 }
 
 type productRepository struct {
@@ -126,4 +129,29 @@ func ILike(cols []string, q string) func(*gorm.DB) *gorm.DB {
 		}
 		return cond
 	}
+}
+
+// FindByCode implements ProductRepository.
+func (p *productRepository) FindByCode(ctx context.Context, code string) (*entity.Product, error) {
+	var product entity.Product
+	err := p.db.WithContext(ctx).Where("sku_code = ?", code).First(&product).Error
+
+	return &product, err
+}
+
+// UpsertProductByCode implements ProductRepository.
+func (p *productRepository) UpsertProductByCode(ctx context.Context, req *entity.Product) error {
+	var isExist entity.Product
+
+	err := p.db.WithContext(ctx).Where("sku_code = ?", req.SkuCode).First(&isExist).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return p.db.WithContext(ctx).Create(req).Error
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return p.db.WithContext(ctx).Save(req).Error
 }

@@ -1,6 +1,9 @@
 package di
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/wildanasyrof/backend-topup/internal/config"
 	"github.com/wildanasyrof/backend-topup/internal/db"
 	"github.com/wildanasyrof/backend-topup/internal/http/handler"
@@ -18,6 +21,7 @@ type DI struct {
 	DB                    *gorm.DB
 	Jwt                   jwt.JWTService
 	Storage               storage.LocalStorage
+	HTTPClient            *http.Client
 	AuthHandler           *handler.AuthHandler
 	UserHandler           *handler.UserHandler
 	MenuHandler           *handler.MenuHandler
@@ -38,6 +42,7 @@ func InitDI(cfg *config.Config) *DI {
 	validator := validator.NewValidator()
 	jwt := jwt.NewJWTService(cfg)
 	storage := storage.NewLocalStorage(cfg)
+	httpClient := &http.Client{Timeout: time.Duration(cfg.Server.RequestTimeOut) * time.Second}
 
 	userRepo := repository.NewUserRepository(DB)
 	authService := service.NewAuthService(userRepo, jwt)
@@ -75,8 +80,9 @@ func InitDI(cfg *config.Config) *DI {
 	categoryHandler := handler.NewCategoryHandler(categoryService, validator, storage)
 
 	productRepository := repository.NewProductRepository(DB)
+	extService := service.NewExternalService(httpClient, logger, productRepository)
 	productService := service.NewProductRepository(productRepository)
-	productHandler := handler.NewProductHandler(productService, validator, storage)
+	productHandler := handler.NewProductHandler(productService, validator, storage, extService)
 
 	priceRepository := repository.NewPriceRepository(DB)
 	priceService := service.NewPriceService(priceRepository)
@@ -85,11 +91,13 @@ func InitDI(cfg *config.Config) *DI {
 	orderRepository := repository.NewOrderRepository(DB)
 	orderService := service.NewOrderService(orderRepository, logger, userRepo, priceRepository)
 	orderHandler := handler.NewOrderHandler(orderService, validator)
+
 	return &DI{
 		Logger:                logger,
 		DB:                    DB,
 		Jwt:                   jwt,
 		Storage:               storage,
+		HTTPClient:            httpClient,
 		AuthHandler:           authHandler,
 		UserHandler:           userHandler,
 		MenuHandler:           menuHandler,
