@@ -1,4 +1,3 @@
-// internal/http/middleware/request_logger.go
 package middleware
 
 import (
@@ -7,7 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
-	"github.com/wildanasyrof/backend-topup/pkg/logger"
+	"github.com/wildanasyrof/backend-topup/pkg/logger" // Import your logger package
 )
 
 func LoggerMiddleware(log logger.Logger) fiber.Handler {
@@ -29,6 +28,12 @@ func LoggerMiddleware(log logger.Logger) fiber.Handler {
 		c.Locals("requestid", reqID)
 		c.Set(fiber.HeaderXRequestID, reqID)
 
+		// ---- BEST PRACTICE: Create and inject request-scoped logger ----
+		reqLogger := log.With(logger.Fields{
+			"request_id": reqID,
+		})
+		c.Locals(logger.CtxKey, reqLogger) // Use the const from logger package
+
 		// ---- Next handler ----------------------------------------------------
 		err := c.Next()
 
@@ -43,48 +48,58 @@ func LoggerMiddleware(log logger.Logger) fiber.Handler {
 			routePath = r.Path // e.g. /v1/deposits/:id
 		}
 
-		ip := c.IP()   // client IP (after proxy config)
-		ips := c.IPs() // X-Forwarded-For chain
+		ip := c.IP()
 		realIP := ""
-		if len(ips) > 0 {
+		if ips := c.IPs(); len(ips) > 0 {
 			realIP = ips[0]
 		}
 
 		ua := string(c.Request().Header.UserAgent())
 		referer := c.Get(fiber.HeaderReferer)
 		host := c.Hostname()
-		proto := c.Protocol() // "http" or "https"
+		proto := c.Protocol()
 
 		size := c.Response().Header.ContentLength()
 		if size < 0 {
-			size = len(c.Response().Body()) // fallback if no content-length
+			size = len(c.Response().Body())
 		}
 
 		uid, _ := c.Locals("user_id").(string) // set by your auth middleware
 
-		// Log handler error explicitly
-		if err != nil {
-			log.Error(err, "request error")
+		// ---- BEST PRACTICE: Log as structured fields, not one string ----
+		fields := logger.Fields{
+			"method":     method,
+			"path":       path,
+			"route":      routePath,
+			"status":     status,
+			"latency":    latency, // zerolog handles time.Duration
+			"ip":         ip,
+			"real_ip":    realIP,
+			"host":       host,
+			"protocol":   proto,
+			"size_bytes": size,
+			"user_id":    uid,
+			"user_agent": ua,
+			"referer":    referer,
 		}
 
-		// ---- One-line, structured-ish summary -------------------------------
-		summary := fmt.Sprintf(
-			`%s %s -> %d in %s req_id=%s route=%s ip=%s real_ip=%s host=%s proto=%s size=%dB uid=%s ua=%q referer=%q`,
-			method, path, status, latency.Truncate(time.Microsecond),
-			reqID, routePath, ip, realIP, host, proto, size, uid, ua, referer,
-		)
+		// Simple, human-readable message
+		msg := fmt.Sprintf("HTTP %s %s", method, path)
 
-		// Elevate severity on 5xx
+		// Log with correct level
 		if status >= 500 {
-			if err == nil {
-				log.Error(fmt.Errorf("http %d", status), summary)
-			} else {
-				log.Error(err, summary)
+			// Use the handler error if it exists, otherwise create one
+			logErr := err
+			if logErr == nil {
+				logErr = fmt.Errorf("server error: status %d", status)
 			}
+			reqLogger.With(fields).Error(logErr, msg)
+		} else if status >= 400 {
+			reqLogger.With(fields).Warn(msg)
 		} else {
-			log.Info(summary)
+			reqLogger.With(fields).Info(msg)
 		}
 
-		return err
+		return err // Pass the original error up
 	}
 }
