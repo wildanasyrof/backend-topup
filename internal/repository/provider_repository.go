@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"gorm.io/gorm"
 )
 
@@ -26,7 +28,13 @@ func NewProviderRepository(db *gorm.DB) ProviderRepository {
 
 // Create implements ProviderRepository.
 func (p *providerRepository) Create(ctx context.Context, req *entity.Provider) error {
-	return p.db.WithContext(ctx).Create(req).Error
+	err := p.db.WithContext(ctx).Create(req).Error
+
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		return apperror.ErrConflict
+	}
+
+	return err
 }
 
 // Delete implements ProviderRepository.
@@ -49,21 +57,21 @@ func (p *providerRepository) FindAll(ctx context.Context) ([]*entity.Provider, e
 func (p *providerRepository) FindByID(ctx context.Context, id int64) (*entity.Provider, error) {
 	var provider entity.Provider
 	err := p.db.WithContext(ctx).Where("id = ?", id).First(&provider).Error
-	if err != nil {
-		return nil, gorm.ErrCheckConstraintViolated
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, apperror.ErrNotFound
 	}
 
-	return &provider, nil
+	return &provider, err
 }
 
 func (p *providerRepository) FindBySlug(ctx context.Context, slug string) (*entity.Provider, error) {
 	var provider entity.Provider
 	err := p.db.WithContext(ctx).Where("slug = ?", slug).First(&provider).Error
-	if err != nil {
-		return nil, err
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, apperror.ErrNotFound
 	}
 
-	return &provider, nil
+	return &provider, err
 }
 
 // Update implements ProviderRepository.

@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"gorm.io/gorm"
 )
 
@@ -41,11 +43,13 @@ func (d *depositRepository) FindAll(ctx context.Context) ([]entity.Deposit, erro
 // FindByTopupID implements DepositRepository.
 func (d *depositRepository) FindByTopupID(ctx context.Context, topupID string) (*entity.Deposit, error) {
 	var deposit entity.Deposit
-	if err := d.db.WithContext(ctx).Where("topup_id = ?", topupID).First(&deposit).Error; err != nil {
-		return nil, err
+	err := d.db.WithContext(ctx).Where("topup_id = ?", topupID).First(&deposit).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, apperror.ErrNotFound
 	}
 
-	return &deposit, nil
+	return &deposit, err
 }
 
 // FindByUserID implements DepositRepository.

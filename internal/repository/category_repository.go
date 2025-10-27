@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"gorm.io/gorm"
 )
 
@@ -26,7 +28,13 @@ func NewCategoryRepository(db *gorm.DB) CategoryRepository {
 
 // Create implements CategoryRepository.
 func (c *categoryRepository) Create(ctx context.Context, req *entity.Category) error {
-	return c.db.WithContext(ctx).Create(req).Error
+	err := c.db.WithContext(ctx).Create(req).Error
+
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		return apperror.ErrConflict
+	}
+
+	return err
 }
 
 // Delete implements CategoryRepository.
@@ -46,11 +54,13 @@ func (c *categoryRepository) FindAll(ctx context.Context) ([]*entity.Category, e
 
 func (c *categoryRepository) FindByID(ctx context.Context, id int64) (*entity.Category, error) {
 	var data entity.Category
-	if err := c.db.WithContext(ctx).Preload("Products").Where("id = ?", id).First(&data).Error; err != nil {
-		return nil, err
+	err := c.db.WithContext(ctx).Preload("Products").Where("id = ?", id).First(&data).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, apperror.ErrNotFound
 	}
 
-	return &data, nil
+	return &data, err
 }
 
 func (c *categoryRepository) FindBySlug(ctx context.Context, slug string) (*entity.Category, error) {
@@ -58,6 +68,9 @@ func (c *categoryRepository) FindBySlug(ctx context.Context, slug string) (*enti
 
 	err := c.db.WithContext(ctx).Preload("Products").Where("slug = ?", slug).First(&data).Error
 
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, apperror.ErrNotFound
+	}
 	return &data, err
 }
 

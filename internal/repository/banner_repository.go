@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"gorm.io/gorm"
 )
 
@@ -46,10 +48,13 @@ func (b *bannerRepository) FindAll(ctx context.Context) ([]*entity.Banner, error
 // FindByID implements BannerRepository.
 func (b *bannerRepository) FindByID(ctx context.Context, id int) (*entity.Banner, error) {
 	var banner entity.Banner
-	if err := b.db.WithContext(ctx).First(&banner, id).Error; err != nil {
-		return nil, err
+
+	err := b.db.WithContext(ctx).First(&banner, id).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, apperror.ErrNotFound
 	}
-	return &banner, nil
+	return &banner, err
 }
 
 // Update implements BannerRepository.

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/wildanasyrof/backend-topup/pkg/response"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 )
 
 func TimeoutMiddleware(d time.Duration) fiber.Handler {
@@ -23,7 +23,7 @@ func TimeoutMiddleware(d time.Duration) fiber.Handler {
 
 		select {
 		case <-ctx.Done():
-			return response.Error(c, fiber.StatusGatewayTimeout, "request time out", nil)
+			return apperror.New(apperror.CodeTimeout, "REQUEST_TIME_OUT", nil)
 		case err := <-errCh:
 			return err
 		}

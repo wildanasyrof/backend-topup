@@ -2,8 +2,11 @@ package repository
 
 import (
 	"context"
+	"errors"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"gorm.io/gorm"
 )
 
@@ -35,10 +38,10 @@ func (u *userRepository) Destroy(ctx context.Context, id uint64) error {
 func (u *userRepository) GetByEmail(ctx context.Context, email string) (*entity.User, error) {
 	var user entity.User
 	err := u.db.WithContext(ctx).Where("email = ?", email).First(&user).Error
-	if err != nil {
-		return nil, err
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, apperror.New(apperror.CodeUnauthorized, "invalid credentials", err)
 	}
-	return &user, nil
+	return &user, err
 }
 
 // GetByID implements UserRepository.
@@ -53,7 +56,18 @@ func (u *userRepository) GetByID(ctx context.Context, id uint64) (*entity.User, 
 
 // Store implements UserRepository.
 func (u *userRepository) Store(ctx context.Context, user *entity.User) error {
-	return u.db.WithContext(ctx).Create(user).Error
+	err := u.db.WithContext(ctx).Create(user).Error
+
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		return apperror.New(apperror.CodeConflict, "user already exist", err)
+	}
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+		return apperror.New(apperror.CodeConflict, "user already exist", err)
+	}
+
+	return err
 }
 
 // Update implements UserRepository.

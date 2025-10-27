@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"gorm.io/gorm"
 )
 
@@ -49,11 +51,13 @@ func (p *priceRepository) FindAll(ctx context.Context) ([]*entity.Price, error) 
 func (p *priceRepository) FindByID(ctx context.Context, id int) (*entity.Price, error) {
 	var price entity.Price
 
-	if err := p.db.WithContext(ctx).Where("id = ?", id).First(&price).Error; err != nil {
-		return nil, err
+	err := p.db.WithContext(ctx).Where("id = ?", id).First(&price).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, apperror.ErrNotFound
 	}
 
-	return &price, nil
+	return &price, err
 }
 
 // Update implements PriceRepository.
@@ -67,6 +71,10 @@ func (p *priceRepository) FindByProductIDnUserLevelID(ctx context.Context, produ
 	err := p.db.WithContext(ctx).
 		Where("product_id = ? AND user_level_id = ?", productId, userLevelId).
 		First(&price).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, apperror.ErrNotFound
+	}
 
 	return &price, err
 }

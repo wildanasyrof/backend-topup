@@ -1,14 +1,14 @@
 package handler
 
 import (
-	"path/filepath"
 	"strconv"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/wildanasyrof/backend-topup/internal/service"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"github.com/wildanasyrof/backend-topup/pkg/response"
 	"github.com/wildanasyrof/backend-topup/pkg/storage"
+	"github.com/wildanasyrof/backend-topup/pkg/utils"
 )
 
 type BannerHandler struct {
@@ -24,60 +24,49 @@ func NewBannerHandler(s service.BannerService, storage storage.LocalStorage) *Ba
 }
 
 func (h *BannerHandler) Create(c *fiber.Ctx) error {
-	file, err := c.FormFile("image")
+
+	img, err := c.FormFile("image")
+
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "image is required", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "image is required", err)
 	}
 
-	const maxBytes = 2 * 1024 * 1024 // 2MB
-	if file.Size > maxBytes {
-		return response.Error(c, fiber.StatusBadRequest, "file too large (max 2MB)", nil)
-	}
+	imgUrl, err := utils.UploadImage(img, h.storage)
 
-	ext := strings.ToLower(filepath.Ext(file.Filename))
-	switch ext {
-	case ".jpg", ".jpeg", ".png", ".webp":
-	default:
-		return response.Error(c, fiber.StatusBadRequest, "unsupported image type (jpg/jpeg/png/webp only)", nil)
-	}
-
-	// ---- 4) Save file ----
-	filename, err := h.storage.Save(file)
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "failed to save file", err)
+		return err
 	}
-	imgUrl := "/uploads/" + filename
 
 	// ---- 5) Service call ----
 	res, err := h.bannerSvc.Create(c.UserContext(), imgUrl)
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "failed to upload banner", err.Error())
+		return err
 	}
 
-	return response.Success(c, "banner uploaded successfully", res)
+	return response.OK(c, res)
 }
 
 func (h *BannerHandler) GetAll(c *fiber.Ctx) error {
 	res, err := h.bannerSvc.FindAll(c.Context())
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "failed to get banners", err.Error())
+		return err
 	}
-	return response.Success(c, "banners retrieved successfully", res)
+	return response.OK(c, res)
 }
 
 func (h *BannerHandler) Delete(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "invalid banner id", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "invalid request param", err)
 	}
 
 	banner, err := h.bannerSvc.Delete(c.UserContext(), id)
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "failed to delete banner", err.Error())
+		return err
 	}
 
-	return response.Success(c, "banner deleted successfully", banner)
+	return response.OK(c, banner)
 }
 
 func (h *BannerHandler) Update(c *fiber.Ctx) error {
@@ -85,38 +74,25 @@ func (h *BannerHandler) Update(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(idStr)
 
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "invalid banner id", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "invalid request param", err)
 	}
 
 	file, err := c.FormFile("image")
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "image is required", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "image is required", err)
 	}
 
-	const maxBytes = 2 * 1024 * 1024 // 2MB
-	if file.Size > maxBytes {
-		return response.Error(c, fiber.StatusBadRequest, "file too large (max 2MB)", nil)
-	}
+	imgUrl, err := utils.UploadImage(file, h.storage)
 
-	ext := strings.ToLower(filepath.Ext(file.Filename))
-	switch ext {
-	case ".jpg", ".jpeg", ".png", ".webp":
-	default:
-		return response.Error(c, fiber.StatusBadRequest, "unsupported image type (jpg/jpeg/png/webp only)", nil)
-	}
-
-	// ---- 4) Save file ----
-	filename, err := h.storage.Save(file)
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "failed to save file", err)
+		return err
 	}
-	imgUrl := "/uploads/" + filename
 
 	// ---- 5) Service call ----
 	res, err := h.bannerSvc.Update(c.UserContext(), id, imgUrl)
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "failed to upload banner", err.Error())
+		return err
 	}
 
-	return response.Success(c, "banner uploaded successfully", res)
+	return response.OK(c, res)
 }

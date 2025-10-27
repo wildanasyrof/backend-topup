@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
@@ -34,12 +33,12 @@ func NewOrderService(orderRepo repository.OrderRepository, logger logger.Logger,
 func (o *orderService) Create(ctx context.Context, userId uint64, req *dto.CreateOrder) (*entity.Order, error) {
 	user, err := o.userRepo.GetByID(ctx, userId)
 	if err != nil {
-		return nil, errors.New("error processing user")
+		return nil, err
 	}
 
 	price, err := o.priceRepo.FindByProductIDnUserLevelID(ctx, req.ProductID, user.UserLevelID)
 	if err != nil {
-		return nil, errors.New("product not found")
+		return nil, err
 	}
 
 	order := &entity.Order{

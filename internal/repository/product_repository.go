@@ -6,6 +6,7 @@ import (
 
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"github.com/wildanasyrof/backend-topup/pkg/pagination"
 	"gorm.io/gorm"
 )
@@ -30,7 +31,13 @@ func NewProductRepository(db *gorm.DB) ProductRepository {
 
 // Create implements ProductRepository.
 func (p *productRepository) Create(ctx context.Context, req *entity.Product) error {
-	return p.db.WithContext(ctx).Create(req).Error
+	err := p.db.WithContext(ctx).Create(req).Error
+
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		return apperror.New(apperror.CodeConflict, "product already exist", err)
+	}
+
+	return err
 }
 
 // Delete implements ProductRepository.
@@ -76,8 +83,10 @@ func (p *productRepository) FindAll(ctx context.Context, q dto.ProductListQuery)
 func (p *productRepository) FindByID(ctx context.Context, id int) (*entity.Product, error) {
 	var product entity.Product
 
-	if err := p.db.WithContext(ctx).Preload("Prices").First(&product, id).Error; err != nil {
-		return nil, err
+	err := p.db.WithContext(ctx).Preload("Prices").First(&product, id).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, apperror.ErrNotFound
 	}
 
 	return &product, nil

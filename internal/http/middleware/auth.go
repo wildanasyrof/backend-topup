@@ -4,25 +4,25 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"github.com/wildanasyrof/backend-topup/pkg/jwt"
-	"github.com/wildanasyrof/backend-topup/pkg/response"
 )
 
 func Auth(jwtSvc jwt.JWTService, allowedRoles ...string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		auth := c.Get("Authorization")
 		if auth == "" || !strings.HasPrefix(auth, "Bearer ") {
-			return response.Error(c, fiber.StatusUnauthorized, "Missing bearer token", nil)
+			return apperror.ErrUnauthorized
 		}
 
 		tokenStr := strings.TrimPrefix(auth, "Bearer ")
 		id, role, err := jwtSvc.ValidateToken(tokenStr)
 		if err != nil {
-			return response.Error(c, fiber.StatusUnauthorized, "invalid or expired refresh token", nil)
+			return apperror.ErrUnauthorized
 		}
 
 		if role == "" {
-			return response.Error(c, fiber.StatusUnauthorized, "Role claim is missing in token", nil)
+			return apperror.ErrUnauthorized
 		}
 
 		c.Locals("user_id", id)
@@ -41,6 +41,6 @@ func Auth(jwtSvc jwt.JWTService, allowedRoles ...string) fiber.Handler {
 		}
 
 		// If role is not allowed, return forbidden
-		return response.Error(c, fiber.StatusForbidden, "Unauthorized", "Forbidden")
+		return apperror.ErrForbidden
 	}
 }

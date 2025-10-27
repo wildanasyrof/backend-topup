@@ -1,11 +1,10 @@
 package handler
 
 import (
-	"log"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/service"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"github.com/wildanasyrof/backend-topup/pkg/response"
 	"github.com/wildanasyrof/backend-topup/pkg/validator"
 )
@@ -22,17 +21,15 @@ func NewUserHandler(userService service.UserService, validator validator.Validat
 func (h *UserHandler) GetProfile(c *fiber.Ctx) error {
 	uid, ok := c.Locals("user_id").(uint64)
 	if !ok {
-		log.Println("User ID not found in context")
-		return response.Error(c, fiber.StatusUnauthorized, "User ID not found", nil)
+		return apperror.ErrUnauthorized
 	}
 
 	user, err := h.userService.GetUserByID(c.UserContext(), uid)
 
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to get user profile", err.Error())
+		return err
 	}
-
-	return response.Success(c, "User profile retrieved successfully", user)
+	return response.OK(c, user)
 }
 
 func (h *UserHandler) Update(c *fiber.Ctx) error {
@@ -40,26 +37,22 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 
 	uid, ok := c.Locals("user_id").(uint64)
 	if !ok {
-		log.Println("User ID not found in context")
-		return response.Error(c, fiber.StatusUnauthorized, "User ID not found", nil)
+		return apperror.ErrUnauthorized
 	}
 
 	if err := c.BodyParser(&req); err != nil {
-		log.Println("Failed to parse request body:", err)
-		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "Invalid JSON", err)
 	}
 
-	if err := h.validator.ValidateBody(&req); err != nil {
-		log.Println("Validation error:", err)
-		return response.Error(c, fiber.StatusBadRequest, "Validation error", err)
+	if err := h.validator.ValidateBody(req); err != nil {
+		return apperror.Validation(err)
 	}
 
 	user, err := h.userService.Update(c.UserContext(), uid, &req)
 	if err != nil {
-		log.Println("Failed to update user:", err)
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to update user", err.Error())
+		return err
 	}
 
-	return response.Success(c, "User updated successfully", user)
+	return response.OK(c, user)
 
 }

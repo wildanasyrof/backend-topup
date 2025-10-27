@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/service"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"github.com/wildanasyrof/backend-topup/pkg/response"
 	"github.com/wildanasyrof/backend-topup/pkg/validator"
 )
@@ -26,29 +27,28 @@ func (h *SettingsHandler) Create(c *fiber.Ctx) error {
 	var req dto.CreateSettingsRequest
 
 	if err := c.BodyParser(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "Invalid JSON", err)
 	}
 
-	if err := h.validator.ValidateBody(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "validation error", err)
+	if err := h.validator.ValidateBody(req); err != nil {
+		return apperror.Validation(err)
 	}
 
 	settings, err := h.settingsService.Create(c.UserContext(), &req)
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to create settings", err.Error())
+		return err
 	}
 
-	return response.Success(c, "Settings created successfully", settings)
-
+	return response.Created(c, settings)
 }
 
 func (h *SettingsHandler) FindAll(c *fiber.Ctx) error {
 	settings, err := h.settingsService.FindAll(c.Context())
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch settings", err.Error())
+		return err
 	}
 
-	return response.Success(c, "Settings fetched successfully", settings)
+	return response.OK(c, settings)
 }
 
 func (h *SettingsHandler) Update(c *fiber.Ctx) error {
@@ -57,23 +57,23 @@ func (h *SettingsHandler) Update(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "Invalid menu ID", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "invalid request param", err)
 	}
 
 	if err := c.BodyParser(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "Invalid JSON", err)
 	}
 
-	if err := h.validator.ValidateBody(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "validation error", err)
+	if err := h.validator.ValidateBody(req); err != nil {
+		return apperror.Validation(err)
 	}
 
 	settings, err := h.settingsService.Update(c.UserContext(), id, &req)
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to update settings", err.Error())
+		return err
 	}
 
-	return response.Success(c, "Settings updated successfully", settings)
+	return response.OK(c, settings)
 }
 
 func (h *SettingsHandler) Delete(c *fiber.Ctx) error {
@@ -81,13 +81,13 @@ func (h *SettingsHandler) Delete(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(idStr)
 
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "Invalid Settings ID", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "invalid request param", err)
 	}
 
 	settings, err := h.settingsService.Delete(c.UserContext(), id)
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete settings", err.Error())
+		return err
 	}
 
-	return response.Success(c, "Settings deleted successfully", settings)
+	return response.OK(c, settings)
 }

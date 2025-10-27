@@ -118,3 +118,7 @@ func InitDI(cfg *config.Config) *DI {
 		OrderHandler:          orderHandler,
 	}
 }
+
+func (d *DI) GetDB() *gorm.DB {
+	return d.DB
+}

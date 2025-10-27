@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/service"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"github.com/wildanasyrof/backend-topup/pkg/logger"
 	"github.com/wildanasyrof/backend-topup/pkg/response"
 	"github.com/wildanasyrof/backend-topup/pkg/validator"
@@ -26,39 +27,39 @@ func NewDepositHandler(depoSvc service.DepositService, validator validator.Valid
 func (h *DepositHandler) Create(c *fiber.Ctx) error {
 	uid, ok := c.Locals("user_id").(uint64)
 	if !ok {
-		return response.Error(c, fiber.StatusUnauthorized, "User ID not found", nil)
+		return apperror.ErrUnauthorized
 	}
 
 	var req dto.DepositRequest
 
 	if err := c.BodyParser(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "Invalid JSON", err)
 	}
 
-	if err := h.validator.ValidateBody(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "Validation error", err)
+	if err := h.validator.ValidateBody(req); err != nil {
+		return apperror.Validation(err)
 	}
 
 	deposit, err := h.DepositSvc.Create(c.UserContext(), uid, &req)
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to create deposit", err.Error())
+		return err
 	}
 
-	return response.Success(c, "Deposit created successfully", deposit)
+	return response.OK(c, deposit)
 }
 
 func (h *DepositHandler) GetByUserID(c *fiber.Ctx) error {
 	uid, ok := c.Locals("user_id").(uint64)
 	if !ok {
-		return response.Error(c, fiber.StatusUnauthorized, "User ID not found", nil)
+		return apperror.ErrUnauthorized
 	}
 
 	deposits, err := h.DepositSvc.GetByUserID(c.UserContext(), uid)
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to get deposits", err.Error())
+		return err
 	}
 
-	return response.Success(c, "Deposits retrieved successfully", deposits)
+	return response.OK(c, deposits)
 }
 
 func (h *DepositHandler) GetByDepositID(c *fiber.Ctx) error {
@@ -68,8 +69,8 @@ func (h *DepositHandler) GetByDepositID(c *fiber.Ctx) error {
 
 	deposit, err := h.DepositSvc.GetByDepositID(c.UserContext(), depositID)
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to get deposit", err.Error())
+		return err
 	}
 
-	return response.Success(c, "Deposit retrieved successfully", deposit)
+	return response.OK(c, deposit)
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/service"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"github.com/wildanasyrof/backend-topup/pkg/response"
 	"github.com/wildanasyrof/backend-topup/pkg/validator"
 )
@@ -23,71 +24,71 @@ func (h *MenuHandler) GetAll(c *fiber.Ctx) error {
 	menus, err := h.menuService.GetAll(c.Context())
 
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to get menus", err.Error())
+		return err
 	}
 
-	return response.Success(c, "Menus retrieved successfully", menus)
+	return response.OK(c, menus)
 }
 
 func (h *MenuHandler) GetByID(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "Invalid menu ID", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "invalid request param", err)
 	}
 	menu, err := h.menuService.GetByID(c.UserContext(), id)
 
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to get menu", err.Error())
+		return err
 	}
 
-	return response.Success(c, "Menu retrieved successfully", menu)
+	return response.OK(c, menu)
 }
 
 func (h *MenuHandler) Create(c *fiber.Ctx) error {
 	var req dto.CreateMenuRequest
 
 	if err := c.BodyParser(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "Invalid JSON", err)
 	}
 
-	if err := h.validator.ValidateBody(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "Validation error", err)
+	if err := h.validator.ValidateBody(req); err != nil {
+		return apperror.Validation(err)
 	}
 
 	menu, err := h.menuService.Create(c.UserContext(), &req)
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to create menu", err.Error())
+		return err
 	}
 
-	return response.Success(c, "Menu created successfully", menu)
+	return response.OK(c, menu)
 }
 
 func (h *MenuHandler) Update(c *fiber.Ctx) error {
 	var req dto.CreateMenuRequest
 
 	if err := c.BodyParser(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "Invalid JSON", err)
 	}
 
-	if err := h.validator.ValidateBody(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "Validation error", err)
+	if err := h.validator.ValidateBody(req); err != nil {
+		return apperror.Validation(err)
 	}
 
 	idStr := c.Params("id")
 	id, err := strconv.Atoi(idStr)
 
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "Invalid menu ID", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "invalid request param", err)
 	}
 
 	menu, errc := h.menuService.Update(c.UserContext(), id, &req)
 
 	if errc != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to update menu", errc.Error())
+		return err
 	}
 
-	return response.Success(c, "Menu updated successfully", menu)
+	return response.OK(c, menu)
 }
 
 func (h *MenuHandler) Delete(c *fiber.Ctx) error {
@@ -95,14 +96,14 @@ func (h *MenuHandler) Delete(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(idStr)
 
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "Invalid menu ID", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "invalid request param", err)
 	}
 
 	menu, err := h.menuService.Delete(c.UserContext(), id)
 
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete menu", err.Error())
+		return err
 	}
 
-	return response.Success(c, "Menu deleted successfully", menu)
+	return response.OK(c, menu)
 }

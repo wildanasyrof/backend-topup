@@ -5,9 +5,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
-	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"github.com/wildanasyrof/backend-topup/internal/service"
-	"github.com/wildanasyrof/backend-topup/pkg/pagination"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"github.com/wildanasyrof/backend-topup/pkg/response"
 	"github.com/wildanasyrof/backend-topup/pkg/storage"
 	"github.com/wildanasyrof/backend-topup/pkg/utils"
@@ -34,23 +33,23 @@ func (p *ProductHandler) Create(c *fiber.Ctx) error {
 	var req dto.ProductCreateRequest
 
 	if err := c.BodyParser(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "invalid request body", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "Invalid JSON", err)
 	}
 
-	if err := p.validator.ValidateBody(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "validation error", err)
+	if err := p.validator.ValidateBody(req); err != nil {
+		return apperror.Validation(err)
 	}
 
 	img, err := c.FormFile("image")
 
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "image is reequired", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "image is required", err)
 	}
 
 	imgUrl, err := utils.UploadImage(img, p.storage)
 
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "file error", err.Error())
+		return err
 	}
 
 	req.ImgURL = imgUrl
@@ -58,30 +57,27 @@ func (p *ProductHandler) Create(c *fiber.Ctx) error {
 	product, err := p.service.Create(c.UserContext(), &req)
 
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "failed creating product", err.Error())
+		return err
 	}
 
-	return response.Success(c, "success creaating product", product)
+	return response.Created(c, product)
 }
 
 func (p *ProductHandler) GetAll(c *fiber.Ctx) error {
 	var req dto.ProductListQuery
 
 	if err := c.QueryParser(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "invalid request param", err)
+		return apperror.New(apperror.CodeBadRequest, "invalid request param", err)
 	}
 
 	req.Normalize()
 
 	items, meta, err := p.service.GetAll(c.UserContext(), req)
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "failed get all products", err.Error())
+		return err
 	}
 
-	return response.Success(c, "success get all products", pagination.Page[entity.Product]{
-		Items: items,
-		Meta:  meta,
-	})
+	return response.OK(c, items, meta)
 }
 
 func (p *ProductHandler) Update(c *fiber.Ctx) error {
@@ -89,17 +85,17 @@ func (p *ProductHandler) Update(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(idStr)
 
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "invalid parameter id", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "invalid request param", err)
 	}
 
 	var req dto.ProductUpdateRequest
 
 	if err := c.BodyParser(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "invalid request body", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "Invalid JSON", err)
 	}
 
-	if err := p.validator.ValidateBody(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "validation error", err)
+	if err := p.validator.ValidateBody(req); err != nil {
+		return apperror.Validation(err)
 	}
 
 	img, err := c.FormFile("image")
@@ -108,7 +104,7 @@ func (p *ProductHandler) Update(c *fiber.Ctx) error {
 		imgUrl, err := utils.UploadImage(img, p.storage)
 
 		if err != nil {
-			return response.Error(c, fiber.StatusBadRequest, "file error", err.Error())
+			return err
 		}
 		req.ImgURL = &imgUrl
 	}
@@ -116,10 +112,10 @@ func (p *ProductHandler) Update(c *fiber.Ctx) error {
 	product, err := p.service.Update(c.UserContext(), id, &req)
 
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "failed updating product", err)
+		return err
 	}
 
-	return response.Success(c, "success updating product", product)
+	return response.OK(c, product)
 }
 
 func (p *ProductHandler) Delete(c *fiber.Ctx) error {
@@ -127,23 +123,23 @@ func (p *ProductHandler) Delete(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(idStr)
 
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "invalid parameter id", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "invalid request param", err)
 	}
 
 	product, err := p.service.Delete(c.UserContext(), id)
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "failed to delete product", err.Error())
+		return err
 	}
 
-	return response.Success(c, "success deleted product", product)
+	return response.OK(c, product)
 }
 
 func (p *ProductHandler) DFUpdate(c *fiber.Ctx) error {
 	data, err := p.exSvc.DFSaveProductList(c.UserContext())
 
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "failed fetching api", err.Error())
+		return err
 	}
 
-	return response.Success(c, "success updating product", data)
+	return response.OK(c, data)
 }

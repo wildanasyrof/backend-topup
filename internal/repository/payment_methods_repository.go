@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"gorm.io/gorm"
 )
 
@@ -24,7 +26,13 @@ func NewPaymentMethodsRepository(db *gorm.DB) PaymentMethodsRepository {
 }
 
 func (p *paymentMethodsRepository) Create(ctx context.Context, paymentMethod *entity.PaymentMethod) error {
-	return p.db.WithContext(ctx).Create(paymentMethod).Error
+	err := p.db.WithContext(ctx).Create(paymentMethod).Error
+
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		return apperror.ErrConflict
+	}
+
+	return err
 }
 
 func (p *paymentMethodsRepository) Delete(ctx context.Context, id uint64) error {
@@ -41,10 +49,12 @@ func (p *paymentMethodsRepository) FindAll(ctx context.Context) ([]*entity.Payme
 
 func (p *paymentMethodsRepository) FindByID(ctx context.Context, id uint64) (*entity.PaymentMethod, error) {
 	var data entity.PaymentMethod
-	if err := p.db.WithContext(ctx).First(&data, id).Error; err != nil {
-		return nil, err
+	err := p.db.WithContext(ctx).First(&data, id).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, apperror.ErrNotFound
 	}
-	return &data, nil
+	return &data, err
 }
 
 func (p *paymentMethodsRepository) Update(ctx context.Context, paymentMethod *entity.PaymentMethod) error {

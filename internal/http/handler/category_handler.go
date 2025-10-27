@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/service"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"github.com/wildanasyrof/backend-topup/pkg/response"
 	"github.com/wildanasyrof/backend-topup/pkg/storage"
 	"github.com/wildanasyrof/backend-topup/pkg/utils"
@@ -30,43 +31,43 @@ func (h *CategoryHandler) Create(c *fiber.Ctx) error {
 	var req dto.CreateCategoryRequest
 
 	if err := c.BodyParser(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "invalid request body", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "Invalid JSON", err)
 	}
 
-	if err := h.validator.ValidateBody(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "validation error", err)
+	if err := h.validator.ValidateBody(req); err != nil {
+		return apperror.Validation(err)
 	}
 
 	img, err := c.FormFile("image")
 
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "image is reequired", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "image is required", err)
 	}
 
 	imgUrl, err := utils.UploadImage(img, h.storage)
 
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "file error", err.Error())
+		return err
 	}
 
 	req.ImgUrl = imgUrl
 
 	category, err := h.service.Create(c.UserContext(), &req)
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "failed create category", err.Error())
+		return err
 	}
 
-	return response.Success(c, "success creating category", category)
+	return response.OK(c, category)
 }
 
 func (h *CategoryHandler) GetAll(c *fiber.Ctx) error {
 
 	category, err := h.service.GetAll(c.Context())
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "failed to get category", err.Error())
+		return err
 	}
 
-	return response.Success(c, "success get all category", category)
+	return response.OK(c, category)
 }
 
 func (h *CategoryHandler) Update(c *fiber.Ctx) error {
@@ -76,15 +77,15 @@ func (h *CategoryHandler) Update(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(idStr)
 
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "invalid category id", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "invalid request param", err)
 	}
 
 	if err := c.BodyParser(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "invalid request body", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "Invalid JSON", err)
 	}
 
-	if err := h.validator.ValidateBody(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "validation error", err)
+	if err := h.validator.ValidateBody(req); err != nil {
+		return apperror.Validation(err)
 	}
 
 	img, err := c.FormFile("image")
@@ -93,17 +94,17 @@ func (h *CategoryHandler) Update(c *fiber.Ctx) error {
 		imgUrl, err := utils.UploadImage(img, h.storage)
 
 		if err != nil {
-			return response.Error(c, fiber.StatusBadRequest, "file error", err.Error())
+			return err
 		}
 		req.ImgUrl = imgUrl
 	}
 
 	category, err := h.service.Update(c.UserContext(), int64(id), &req)
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "error updating category", err.Error())
+		return err
 	}
 
-	return response.Success(c, "success update category", category)
+	return response.OK(c, category)
 }
 
 func (h *CategoryHandler) Delete(c *fiber.Ctx) error {
@@ -112,16 +113,16 @@ func (h *CategoryHandler) Delete(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(idStr)
 
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "invalid category id", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "invalid request param", err)
 	}
 
 	category, err := h.service.Delete(c.UserContext(), int64(id))
 
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "error deleting category", err.Error())
+		return err
 	}
 
-	return response.Success(c, "success deleting category", category)
+	return response.OK(c, category)
 }
 
 func (h *CategoryHandler) GetBySlug(c *fiber.Ctx) error {
@@ -130,8 +131,8 @@ func (h *CategoryHandler) GetBySlug(c *fiber.Ctx) error {
 	category, err := h.service.GetBySlug(c.UserContext(), slug)
 
 	if err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "failed to get category", err)
+		return err
 	}
 
-	return response.Success(c, "success get category", category)
+	return response.OK(c, category)
 }

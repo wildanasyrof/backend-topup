@@ -2,11 +2,11 @@ package service
 
 import (
 	"context"
-	"errors"
 
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"github.com/wildanasyrof/backend-topup/internal/repository"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"github.com/wildanasyrof/backend-topup/pkg/hash"
 	"github.com/wildanasyrof/backend-topup/pkg/jwt"
 )
@@ -49,17 +49,17 @@ func (a *authService) RegisterByGoogle(ctx context.Context, userInfo *dto.Google
 func (a *authService) Login(ctx context.Context, req *dto.LoginUserRequest) (*entity.User, string, error) {
 	user, err := a.userRepository.GetByEmail(ctx, req.Email)
 
-	if err != nil && user == nil {
-		return nil, "", errors.New("invalid credential")
+	if err != nil {
+		return nil, "", err
 	}
 
 	if err := hash.ComparePassword(user.PasswordHash, req.Password); err != nil {
-		return nil, "", errors.New("invalid credential")
+		return nil, "", apperror.New(apperror.CodeUnauthorized, "invalid credentials", err)
 	}
 
 	token, err := a.GenerateToken(user.ID, user.Role)
 	if err != nil {
-		return nil, "", err
+		return nil, "", apperror.New(apperror.CodeInternal, "issue token failed", err)
 	}
 
 	return user, token.AccessToken, nil

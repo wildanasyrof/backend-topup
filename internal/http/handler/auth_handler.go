@@ -2,11 +2,12 @@ package handler
 
 import (
 	"encoding/json"
-	"strings"
+	"errors"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/service"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"github.com/wildanasyrof/backend-topup/pkg/oauth"
 	"github.com/wildanasyrof/backend-topup/pkg/response"
 	"github.com/wildanasyrof/backend-topup/pkg/validator"
@@ -35,48 +36,39 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	var req dto.RegisterUserRequest
 
 	if err := c.BodyParser(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "invalid request body", nil)
+		return apperror.New(apperror.CodeBadRequest, "Invalid JSON", err)
 	}
 
 	if err := h.validator.ValidateBody(req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "validation error", err)
+		return apperror.Validation(err)
 	}
 
 	user, err := h.authService.Register(c.UserContext(), &req)
 	if err != nil {
-		errMsg := err.Error()
-
-		if strings.Contains(errMsg, "uni_users_email") {
-			return response.Error(c, fiber.StatusConflict, "Registration failed", fiber.Map{
-				"message": "Email already exists",
-				"field":   "email",
-			})
-		}
-
-		return response.Error(c, fiber.StatusInternalServerError, "Registration failed", err.Error())
+		return err
 
 	}
 
-	return response.Success(c, "user registered succesfully", user)
+	return response.OK(c, user)
 }
 
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	var req dto.LoginUserRequest
 
 	if err := c.BodyParser(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "invalid request body", err.Error())
+		return apperror.New(apperror.CodeBadRequest, "Invalid JSON", err)
 	}
 
 	if err := h.validator.ValidateBody(req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "validation error", err)
+		return apperror.Validation(err)
 	}
 
 	user, token, err := h.authService.Login(c.UserContext(), &req)
 	if err != nil {
-		return response.Error(c, fiber.StatusUnauthorized, "login failed", err.Error())
+		return err
 	}
 
-	return response.Success(c, "login success", fiber.Map{
+	return response.OK(c, fiber.Map{
 		"user":  user,
 		"token": token,
 	})
@@ -85,7 +77,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 func (h *AuthHandler) GoogleLogin(c *fiber.Ctx) error {
 	state, verifier, challenge, err := h.devStore.NewStateAndPKCE()
 	if err != nil || verifier == "" {
-		return response.Error(c, 500, "OAUTH_STATE_GEN_FAILED", err)
+		return apperror.New(apperror.CodeInternal, "OAUTH_STATE_GEN_FAILED", err)
 	}
 	url := h.oauthPkg.Config.AuthCodeURL(
 		state,
@@ -98,11 +90,12 @@ func (h *AuthHandler) GoogleLogin(c *fiber.Ctx) error {
 func (h *AuthHandler) GoogleCallback(c *fiber.Ctx) error {
 	code, state := c.Query("code"), c.Query("state")
 	if code == "" || state == "" {
-		return response.Error(c, 400, "OAUTH_INVALID_REQUEST", "missing code/state")
+		return apperror.New(apperror.CodeBadRequest, "OAUTH_INVALID_REQUEST", errors.New("missing code/state"))
+
 	}
 	codeVerifier, ok := h.devStore.Consume(state)
 	if !ok {
-		return response.Error(c, 400, "OAUTH_STATE_MISMATCH", "invalid state")
+		return apperror.New(apperror.CodeBadRequest, "OAUTH_STATE_MISMATCH", errors.New("invalid state"))
 	}
 
 	// Exchange WITH secret (from config) AND PKCE verifier
@@ -110,22 +103,22 @@ func (h *AuthHandler) GoogleCallback(c *fiber.Ctx) error {
 		oauth2.SetAuthURLParam("code_verifier", codeVerifier),
 	)
 	if err != nil {
-		return response.Error(c, 502, "OAUTH_EXCHANGE_FAILED", err.Error())
+		return apperror.New(apperror.CodeUnavailable, "OAUTH_EXCHANGE_FAILED", err)
 	}
 
 	client := h.oauthPkg.Config.Client(c.UserContext(), tok)
 	uinfoResp, err := client.Get("https://openidconnect.googleapis.com/v1/userinfo")
 	if err != nil {
-		return response.Error(c, 502, "OAUTH_USERINFO_FAILED", err.Error())
+		return apperror.New(apperror.CodeUnavailable, "OAUTH_USERINFO_FAILED", err)
 	}
 	defer uinfoResp.Body.Close()
 	if uinfoResp.StatusCode >= 400 {
-		return response.Error(c, 502, "OAUTH_USERINFO_BAD_STATUS", uinfoResp.Status)
+		return apperror.New(apperror.CodeUnavailable, "OAUTH_USERINFO_BAD_STATUS", err)
 	}
 
 	var userInfo dto.GoogleLoginResponse
 	if err := json.NewDecoder(uinfoResp.Body).Decode(&userInfo); err != nil {
-		return response.Error(c, 502, "OAUTH_USERINFO_PARSE_FAILED", err.Error())
+		return apperror.New(apperror.CodeUnavailable, "OAUTH_USERINFO_PARSE_FAILED", err)
 	}
 
 	user, _ := h.userService.FindUserByGoogleID(c.UserContext(), userInfo.Sub)
@@ -137,16 +130,16 @@ func (h *AuthHandler) GoogleCallback(c *fiber.Ctx) error {
 	if user == nil {
 		user, err = h.authService.RegisterByGoogle(c.UserContext(), &userInfo)
 		if err != nil {
-			return response.Error(c, fiber.StatusInternalServerError, "USER_CREATE_FAILED", err.Error())
+			return apperror.New(apperror.CodeInternal, "USER_CREATE_FAILED", err)
 		}
 	}
 
 	token, err := h.authService.GenerateToken(user.ID, user.Role)
 	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "JWT_CREATE_FAILED", err.Error())
+		return apperror.New(apperror.CodeInternal, "JWT_CREATE_FAILED", err)
 	}
 	// TODO: find/create user, issue JWT, return {token, user}
-	return response.Success(c, "Login success", fiber.Map{
+	return response.OK(c, fiber.Map{
 		"access_token": token,
 		"user":         user,
 	})

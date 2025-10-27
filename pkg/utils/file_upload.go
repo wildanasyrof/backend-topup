@@ -2,11 +2,12 @@
 package utils
 
 import (
-	"fmt"
+	"errors"
 	"mime/multipart"
 	"path/filepath"
 	"strings"
 
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"github.com/wildanasyrof/backend-topup/pkg/storage"
 )
 
@@ -25,16 +26,16 @@ func UploadImage(
 	st storage.LocalStorage, // contoh: "/uploads"
 ) (string, error) {
 	if file.Size > MaxImageSize {
-		return "", fmt.Errorf("file too large (max 2MB)")
+		return "", apperror.New(apperror.CodeBadRequest, "image too large (max 2mb)", errors.New("file too large"))
 	}
 	ext := strings.ToLower(filepath.Ext(file.Filename))
 	if !allowedExt[ext] {
-		return "", fmt.Errorf("unsupported image type (jpg/jpeg/png/webp only)")
+		return "", apperror.New(apperror.CodeBadRequest, "unsupported image type (jpg/jpeg/png/webp only)", errors.New("file error"))
 	}
 
 	filename, err := st.Save(file)
 	if err != nil {
-		return "", fmt.Errorf("failed to save file: %w", err)
+		return "", apperror.New(apperror.CodeInternal, "failed to save file: %w", errors.New("upload error"))
 	}
 	return storage.PublicURL("/uploads", filename), nil
 }

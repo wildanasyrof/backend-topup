@@ -15,7 +15,7 @@ func main() {
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
 		// NOTE: no comma after password
-		dsn = "postgres://drakorid:wildan123,@70.153.17.56:5432/topup?sslmode=disable"
+		dsn = "postgres://postgres:wildan123@127.0.0.1:5432/topup?sslmode=disable"
 	}
 
 	db, err := sql.Open("pgx", dsn)

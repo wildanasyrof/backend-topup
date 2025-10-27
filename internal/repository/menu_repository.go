@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
+	apperror "github.com/wildanasyrof/backend-topup/pkg/apperr"
 	"gorm.io/gorm"
 )
 
@@ -24,7 +26,13 @@ func NewMenuRepository(db *gorm.DB) MenuRepository {
 }
 
 func (m *menuRepository) Create(ctx context.Context, req *entity.Menu) error {
-	return m.db.WithContext(ctx).Create(req).Error
+	err := m.db.WithContext(ctx).Create(req).Error
+
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		return apperror.ErrConflict
+	}
+
+	return err
 }
 
 func (m *menuRepository) Delete(ctx context.Context, id int64) error {
@@ -46,8 +54,8 @@ func (m *menuRepository) FindAll(ctx context.Context) ([]*entity.Menu, error) {
 func (m *menuRepository) FindByID(ctx context.Context, id int64) (*entity.Menu, error) {
 	var menu entity.Menu
 	err := m.db.WithContext(ctx).Preload("Categories").Where("id = ?", id).First(&menu).Error
-	if err != nil {
-		return nil, err
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, apperror.ErrNotFound
 	}
 	return &menu, nil
 }
