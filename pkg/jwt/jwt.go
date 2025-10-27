@@ -23,7 +23,7 @@ type jwtService struct {
 
 func NewJWTService(cfg *config.Config) JWTService {
 	return &jwtService{
-		SecretKey:  cfg.JWT.JWTSecret,
+		SecretKey:  cfg.JWT.AccessSecret,
 		accessTTL:  time.Duration(cfg.JWT.AccessTokenMinutes) * time.Minute,
 		refreshTTL: time.Duration(cfg.JWT.RefreshTokenDays) * time.Hour * 24, // Convert days to hours
 	}
