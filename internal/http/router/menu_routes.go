@@ -8,9 +8,11 @@ import (
 )
 
 func MenuRoutes(r fiber.Router, menuHandler *handler.MenuHandler, di *di.DI) {
+	// Rute-rute ini didefinisikan SEBELUM middleware auth
 	r.Get("/", menuHandler.GetAll)
 	r.Get("/:id", menuHandler.GetByID)
 
+	// Middleware auth hanya berlaku untuk rute DI BAWAH baris ini
 	r.Use(middleware.Auth(di.Jwt, "admin"))
 	r.Post("/", menuHandler.Create)
 	r.Put("/:id", menuHandler.Update)

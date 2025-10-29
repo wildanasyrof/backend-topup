@@ -26,12 +26,13 @@ func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
 
 	AuthRoutes(app.Group("/auth"), di.AuthHandler)
 
+	menu := app.Group("/menus")
+	MenuRoutes(menu, di.MenuHandler, di)
+
+	app.Get("/menu", di.MenuHandler.GetAll)
 	me := app.Group("/me")
 	me.Use(middleware.Auth(di.Jwt, "admin", "user"))
 	UserRoutes(me, di.UserHandler)
-
-	menu := app.Group("/menus")
-	MenuRoutes(menu, di.MenuHandler, di)
 
 	settings := app.Group("/settings")
 	settings.Use(middleware.Auth(di.Jwt, "admin"))

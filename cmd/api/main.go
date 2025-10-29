@@ -30,9 +30,6 @@ func main() {
 		},
 	)
 	router.SetupRouter(app, di, cfg)
-
-	app.Listen(":" + cfg.Server.Port)
-
 	// Channel to listen for OS signals
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
