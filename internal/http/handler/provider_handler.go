@@ -43,13 +43,22 @@ func (h *ProviderHandler) Create(c *fiber.Ctx) error {
 }
 
 func (h *ProviderHandler) GetAll(c *fiber.Ctx) error {
-	providers, err := h.service.GetAll(c.Context())
+	// 1. Definisikan var untuk query DTO
+	var req dto.ProviderListQuery
 
+	// 2. Parse query parameters (e.g., ?page=1&limit=10&q=digiflazz)
+	if err := c.QueryParser(&req); err != nil {
+		return apperror.New(apperror.CodeBadRequest, "invalid query parameters", err)
+	}
+
+	// 3. Panggil service, sekarang mengembalikan 3 nilai
+	items, meta, err := h.service.GetAll(c.UserContext(), req)
 	if err != nil {
 		return err
 	}
 
-	return response.OK(c, providers)
+	// 4. Kembalikan response dengan data dan meta
+	return response.OK(c, items, meta)
 }
 
 func (h *ProviderHandler) Update(c *fiber.Ctx) error {

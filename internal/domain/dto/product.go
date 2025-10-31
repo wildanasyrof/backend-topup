@@ -39,12 +39,20 @@ type ProductUpdateRequest struct {
 
 // --- ProductListQuery: Used for filtering/sorting product lists. ---
 type ProductListQuery struct {
-	pagination.Query
+	pagination.Query // Embeds: Page, Limit, Sort, Q (untuk search)
 
-	ProviderID *uint `query:"provider_id"`
-	CategoryID *uint `query:"category_id"`
-	LevelID    *uint `query:"level_id"` // if prices vary by user level
-	Active     *bool `query:"active"`
+	// --- UBAH DI SINI ---
+	ProviderID *int64 `query:"provider_id"` // Ubah dari *uint ke *int64 agar cocok dgn entity
+	CategoryID *int   `query:"category_id"` // Ubah dari *uint ke *int agar cocok dgn entity
+	LevelID    *uint  `query:"level_id"`
+
+	// --- TAMBAHKAN FILTER BARU ---
+	SellerName *string `query:"seller_name"`
+	Status     *string `query:"status" validate:"omitempty,oneof=active inactive problem"`
+	SkuCode    *string `query:"sku_code"`
+
+	// 'Active' tidak lagi diperlukan jika kita punya 'Status'
+	// Active     *bool `query:"active"`
 }
 
 // ToEntity maps the provided update fields from the DTO to the entity.

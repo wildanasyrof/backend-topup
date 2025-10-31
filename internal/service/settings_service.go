@@ -6,6 +6,7 @@ import (
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"github.com/wildanasyrof/backend-topup/internal/repository"
+	"github.com/wildanasyrof/backend-topup/pkg/pagination"
 )
 
 // SettingsService interface updated to include context.Context
@@ -14,7 +15,7 @@ type SettingsService interface {
 	FindByName(ctx context.Context, name string) (*entity.Settings, error)
 	Update(ctx context.Context, id int, req *dto.UpdateSettingsRequest) (*entity.Settings, error)
 	Delete(ctx context.Context, id int) (*entity.Settings, error)
-	FindAll(ctx context.Context) ([]*entity.Settings, error)
+	FindAll(ctx context.Context, q dto.SettingsListQuery) ([]*entity.Settings, pagination.Meta, error)
 }
 
 type settingsService struct {
@@ -59,9 +60,8 @@ func (s *settingsService) Delete(ctx context.Context, id int) (*entity.Settings,
 }
 
 // FindAll implements SettingsService.
-func (s *settingsService) FindAll(ctx context.Context) ([]*entity.Settings, error) {
-	// Pass ctx to the repository call
-	return s.settingsRepo.FindAll(ctx)
+func (s *settingsService) FindAll(ctx context.Context, q dto.SettingsListQuery) ([]*entity.Settings, pagination.Meta, error) {
+	return s.settingsRepo.FindAll(ctx, q)
 }
 
 // GetByName implements SettingsService.

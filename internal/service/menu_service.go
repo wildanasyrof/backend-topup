@@ -7,11 +7,12 @@ import (
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"github.com/wildanasyrof/backend-topup/internal/repository"
+	"github.com/wildanasyrof/backend-topup/pkg/pagination"
 )
 
 type MenuService interface {
 	Create(ctx context.Context, req *dto.CreateMenuRequest) (*entity.Menu, error)
-	GetAll(ctx context.Context) ([]*entity.Menu, error)
+	GetAll(ctx context.Context, q dto.MenuListQuery) ([]*entity.Menu, pagination.Meta, error)
 	GetByID(ctx context.Context, id int) (*entity.Menu, error)
 	Update(ctx context.Context, id int, req *dto.CreateMenuRequest) (*entity.Menu, error)
 	Delete(ctx context.Context, id int) (*entity.Menu, error)
@@ -55,8 +56,8 @@ func (m *menuService) Delete(ctx context.Context, id int) (*entity.Menu, error) 
 }
 
 // GetAll implements MenuService.
-func (m *menuService) GetAll(ctx context.Context) ([]*entity.Menu, error) {
-	return m.menuRepository.FindAll(ctx)
+func (m *menuService) GetAll(ctx context.Context, q dto.MenuListQuery) ([]*entity.Menu, pagination.Meta, error) {
+	return m.menuRepository.FindAll(ctx, q)
 }
 
 // GetByID implements MenuService.

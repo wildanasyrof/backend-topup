@@ -6,11 +6,12 @@ import (
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"github.com/wildanasyrof/backend-topup/internal/repository"
+	"github.com/wildanasyrof/backend-topup/pkg/pagination"
 )
 
 type CategoryService interface {
 	Create(ctx context.Context, req *dto.CreateCategoryRequest) (*entity.Category, error)
-	GetAll(ctx context.Context) ([]*entity.Category, error)
+	GetAll(ctx context.Context, q dto.CategoryListQuery) ([]entity.Category, pagination.Meta, error)
 	GetBySlug(ctx context.Context, slug string) (*entity.Category, error)
 	Update(ctx context.Context, id int64, req *dto.UpdateCategoryRequest) (*entity.Category, error)
 	Delete(ctx context.Context, id int64) (*entity.Category, error)
@@ -61,8 +62,8 @@ func (c *categoryService) Delete(ctx context.Context, id int64) (*entity.Categor
 }
 
 // GetAll implements CategoryService.
-func (c *categoryService) GetAll(ctx context.Context) ([]*entity.Category, error) {
-	return c.repo.FindAll(ctx)
+func (c *categoryService) GetAll(ctx context.Context, q dto.CategoryListQuery) ([]entity.Category, pagination.Meta, error) {
+	return c.repo.FindAll(ctx, q)
 }
 
 func (c *categoryService) GetBySlug(ctx context.Context, slug string) (*entity.Category, error) {

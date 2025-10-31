@@ -54,11 +54,17 @@ func (p *productRepository) FindAll(ctx context.Context, q dto.ProductListQuery)
 		Preload("Prices").Preload("Provider").Preload("Category")
 
 	// count with filters/search
-	allowedSort := map[string]struct{}{"created_at": {}, "name": {}, "price": {}, "id": {}}
+	// TAMBAHKAN kolom baru ke allowedSort
+	allowedSort := map[string]struct{}{"created_at": {}, "name": {}, "price": {}, "id": {}, "stock": {}, "seller_name": {}}
+
 	filtered := base.
 		Scopes(
-			ProductFilters(q.ProviderID, q.CategoryID, q.LevelID, q.Active),
-			ILike([]string{"products.name"}, q.Q),
+			// --- UBAH DI SINI ---
+			// Teruskan seluruh DTO query ke ProductFilters
+			ProductFilters(q),
+			// Perluas pencarian 'q' untuk mencakup sku_code dan seller_name
+			ILike([]string{"products.name", "products.sku_code", "products.seller_name"}, q.Q),
+			// ---
 		)
 
 	var total int64
@@ -98,21 +104,28 @@ func (p *productRepository) Update(ctx context.Context, req *entity.Product) err
 }
 
 // Resource filter
-
-func ProductFilters(providerID, categoryID, levelID *uint, active *bool) func(*gorm.DB) *gorm.DB {
+func ProductFilters(q dto.ProductListQuery) func(*gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		if providerID != nil {
-			db = db.Where("provider_id = ?", *providerID)
+		if q.ProviderID != nil {
+			db = db.Where("products.provider_id = ?", *q.ProviderID)
 		}
-		if categoryID != nil {
-			db = db.Where("category_id = ?", *categoryID)
+		if q.CategoryID != nil {
+			db = db.Where("products.category_id = ?", *q.CategoryID)
 		}
-		if active != nil {
-			db = db.Where("active = ?", *active)
+		if q.Status != nil {
+			db = db.Where("products.status = ?", *q.Status)
 		}
-		if levelID != nil {
+		if q.SellerName != nil {
+			// Gunakan ILIKE untuk seller_name agar lebih fleksibel
+			db = db.Where("products.seller_name ILIKE ?", "%"+*q.SellerName+"%")
+		}
+		if q.SkuCode != nil {
+			db = db.Where("products.sku_code = ?", *q.SkuCode)
+		}
+
+		if q.LevelID != nil {
 			// example: join prices table to ensure at least one price for level
-			db = db.Joins("LEFT JOIN prices ON prices.product_id = products.id AND prices.user_level_id = ?", *levelID).
+			db = db.Joins("LEFT JOIN prices ON prices.product_id = products.id AND prices.user_level_id = ?", *q.LevelID).
 				Where("prices.id IS NOT NULL")
 		}
 		return db

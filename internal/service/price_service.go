@@ -6,11 +6,12 @@ import (
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"github.com/wildanasyrof/backend-topup/internal/repository"
+	"github.com/wildanasyrof/backend-topup/pkg/pagination"
 )
 
 type PriceService interface {
 	Create(ctx context.Context, req *dto.CreatePrice) (*entity.Price, error)
-	GetAll(ctx context.Context) ([]*entity.Price, error)
+	GetAll(ctx context.Context, q dto.PriceListQuery) ([]*entity.Price, pagination.Meta, error)
 	Update(ctx context.Context, id int, req *dto.UpdatePrice) (*entity.Price, error)
 	Delete(ctx context.Context, id int) (*entity.Price, error)
 }
@@ -53,8 +54,8 @@ func (p *priceService) Delete(ctx context.Context, id int) (*entity.Price, error
 }
 
 // GetAll implements PriceService.
-func (p *priceService) GetAll(ctx context.Context) ([]*entity.Price, error) {
-	return p.repo.FindAll(ctx)
+func (p *priceService) GetAll(ctx context.Context, q dto.PriceListQuery) ([]*entity.Price, pagination.Meta, error) {
+	return p.repo.FindAll(ctx, q)
 }
 
 // Update implements PriceService.

@@ -6,12 +6,13 @@ import (
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"github.com/wildanasyrof/backend-topup/internal/repository"
+	"github.com/wildanasyrof/backend-topup/pkg/pagination"
 )
 
 // ProviderService interface updated to include context.Context
 type ProviderService interface {
 	Create(ctx context.Context, req *dto.ProviderRequest) (*entity.Provider, error)
-	GetAll(ctx context.Context) ([]*entity.Provider, error)
+	GetAll(ctx context.Context, q dto.ProviderListQuery) ([]*entity.Provider, pagination.Meta, error)
 	Update(ctx context.Context, id int64, req *dto.ProviderUpdate) (*entity.Provider, error)
 	Delete(ctx context.Context, id int64) (*entity.Provider, error)
 }
@@ -56,9 +57,8 @@ func (p *providerService) Delete(ctx context.Context, id int64) (*entity.Provide
 }
 
 // GetAll implements ProviderService.
-func (p *providerService) GetAll(ctx context.Context) ([]*entity.Provider, error) {
-	// Pass ctx to the repository call
-	return p.providerRepo.FindAll(ctx)
+func (p *providerService) GetAll(ctx context.Context, q dto.ProviderListQuery) ([]*entity.Provider, pagination.Meta, error) {
+	return p.providerRepo.FindAll(ctx, q)
 }
 
 // Update implements ProviderService.

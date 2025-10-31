@@ -43,12 +43,23 @@ func (h *SettingsHandler) Create(c *fiber.Ctx) error {
 }
 
 func (h *SettingsHandler) FindAll(c *fiber.Ctx) error {
-	settings, err := h.settingsService.FindAll(c.Context())
+	// 1. Definisikan var untuk query DTO
+	var req dto.SettingsListQuery
+
+	// 2. Parse query parameters (e.g., ?page=1&q=site_name)
+	if err := c.QueryParser(&req); err != nil {
+		return apperror.New(apperror.CodeBadRequest, "invalid query parameters", err)
+	}
+
+	// 3. Panggil service, sekarang mengembalikan 3 nilai
+	// Gunakan c.UserContext() untuk menghormati timeout middleware
+	items, meta, err := h.settingsService.FindAll(c.UserContext(), req)
 	if err != nil {
 		return err
 	}
 
-	return response.OK(c, settings)
+	// 4. Kembalikan response dengan data dan meta
+	return response.OK(c, items, meta)
 }
 
 func (h *SettingsHandler) Update(c *fiber.Ctx) error {

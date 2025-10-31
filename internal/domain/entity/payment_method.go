@@ -13,7 +13,8 @@ type PaymentMethod struct {
 	CreatedAt  time.Time `json:"created_at,omitempty" gorm:"autoCreateTime;"`
 	UpdatedAt  time.Time `json:"updated_at,omitempty" gorm:"autoUpdateTime;"`
 
-	Provider Provider `json:"-" gorm:"foreignKey:ProviderID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
+	// --- UBAH JSON TAG DARI "-" -> "provider,omitempty" ---
+	Provider Provider `json:"provider,omitempty" gorm:"foreignKey:ProviderID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
 }
 
 // TableName overrides the table name used by GORM

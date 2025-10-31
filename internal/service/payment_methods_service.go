@@ -6,10 +6,11 @@ import (
 	"github.com/wildanasyrof/backend-topup/internal/domain/dto"
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
 	"github.com/wildanasyrof/backend-topup/internal/repository"
+	"github.com/wildanasyrof/backend-topup/pkg/pagination"
 )
 
 type PaymentMethodsService interface {
-	FindAll(ctx context.Context) ([]*entity.PaymentMethod, error)
+	FindAll(ctx context.Context, q dto.PaymentMethodListQuery) ([]*entity.PaymentMethod, pagination.Meta, error)
 	Create(ctx context.Context, req *dto.CreatePaymentMethodRequest) (*entity.PaymentMethod, error)
 	Delete(ctx context.Context, id uint64) (*entity.PaymentMethod, error)
 	Update(ctx context.Context, id uint64, req *dto.UpdatePaymentMethodRequest) (*entity.PaymentMethod, error)
@@ -57,8 +58,8 @@ func (p *paymentMethodsService) Delete(ctx context.Context, id uint64) (*entity.
 }
 
 // FindAll implements PaymentMethodsService.
-func (p *paymentMethodsService) FindAll(ctx context.Context) ([]*entity.PaymentMethod, error) {
-	return p.repo.FindAll(ctx)
+func (p *paymentMethodsService) FindAll(ctx context.Context, q dto.PaymentMethodListQuery) ([]*entity.PaymentMethod, pagination.Meta, error) {
+	return p.repo.FindAll(ctx, q)
 }
 
 // FindByID implements PaymentMethodsService.

@@ -1,6 +1,9 @@
 package dto
 
-import "github.com/wildanasyrof/backend-topup/internal/domain/entity"
+import (
+	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
+	"github.com/wildanasyrof/backend-topup/pkg/pagination"
+)
 
 // In your DTO, keep json tags for JSON requests, and ADD form tags for multipart.
 type CreatePaymentMethodRequest struct {
@@ -10,6 +13,15 @@ type CreatePaymentMethodRequest struct {
 	ProviderID int64    `form:"provider_id" validate:"required"`
 	Fee        *float64 `json:"fee,omitempty" form:"fee"`
 	Percent    *float64 `json:"percent,omitempty" form:"percent"`
+}
+
+type PaymentMethodListQuery struct {
+	pagination.Query // Embeds: Page, Limit, Sort, Q
+
+	// Filter spesifik
+	Type       *string `query:"type"`
+	Name       *string `query:"name"`
+	ProviderID *int64  `query:"provider_id"`
 }
 
 type UpdatePaymentMethodRequest struct {

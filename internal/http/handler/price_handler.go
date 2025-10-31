@@ -41,13 +41,22 @@ func (p *PriceHandler) Create(c *fiber.Ctx) error {
 }
 
 func (p *PriceHandler) GetAll(c *fiber.Ctx) error {
-	prices, err := p.service.GetAll(c.Context())
+	// 1. Definisikan var untuk query DTO
+	var req dto.PriceListQuery
 
+	// 2. Parse query parameters (e.g., ?product_id=5&user_level_id=1)
+	if err := c.QueryParser(&req); err != nil {
+		return apperror.New(apperror.CodeBadRequest, "invalid query parameters", err)
+	}
+
+	// 3. Panggil service, sekarang mengembalikan 3 nilai
+	items, meta, err := p.service.GetAll(c.UserContext(), req)
 	if err != nil {
 		return err
 	}
 
-	return response.OK(c, prices)
+	// 4. Kembalikan response dengan data dan meta
+	return response.OK(c, items, meta)
 }
 
 func (p *PriceHandler) Update(c *fiber.Ctx) error {

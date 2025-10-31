@@ -2,7 +2,18 @@ package dto
 
 import (
 	"github.com/wildanasyrof/backend-topup/internal/domain/entity"
+	"github.com/wildanasyrof/backend-topup/pkg/pagination"
 )
+
+type CategoryListQuery struct {
+	pagination.Query // Embeds: Page, Limit, Sort, Q
+
+	// Filter spesifik untuk Category
+	MenuID     *int64  `query:"menu_id"`
+	ProviderID *int64  `query:"provider_id"`
+	Status     *string `query:"status" validate:"omitempty,oneof=inactive active problem"`
+	Type       *string `query:"type" validate:"omitempty,oneof=prabayar pascabayar"`
+}
 
 // CreateCategoryRequest: untuk multipart/form-data
 type CreateCategoryRequest struct {

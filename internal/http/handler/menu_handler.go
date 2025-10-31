@@ -21,13 +21,22 @@ func NewMenuHandler(menuService service.MenuService, validator validator.Validat
 }
 
 func (h *MenuHandler) GetAll(c *fiber.Ctx) error {
-	menus, err := h.menuService.GetAll(c.Context())
+	// 1. Definisikan var untuk query DTO
+	var req dto.MenuListQuery
 
+	// 2. Parse query parameters (e.g., ?page=1&limit=10&q=game)
+	if err := c.QueryParser(&req); err != nil {
+		return apperror.New(apperror.CodeBadRequest, "invalid query parameters", err)
+	}
+
+	// 3. Panggil service, sekarang mengembalikan 3 nilai
+	items, meta, err := h.menuService.GetAll(c.UserContext(), req)
 	if err != nil {
 		return err
 	}
 
-	return response.OK(c, menus)
+	// 4. Kembalikan response dengan data dan meta
+	return response.OK(c, items, meta)
 }
 
 func (h *MenuHandler) GetByID(c *fiber.Ctx) error {

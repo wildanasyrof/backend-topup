@@ -42,8 +42,7 @@ func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
 	PaymentMethodsRoutes(paymentMethods, di.PaymentMethodsHandler, di)
 
 	banner := app.Group("/banners")
-	banner.Use(middleware.Auth(di.Jwt, "admin"))
-	BannerRoutes(banner, di.BannerHandler)
+	BannerRoutes(banner, di)
 
 	deposit := app.Group("/deposits")
 	deposit.Use(middleware.Auth(di.Jwt, "admin", "user"))

@@ -28,11 +28,17 @@ func NewProductRepository(repo repository.ProductRepository) ProductService {
 func (p *productService) Create(ctx context.Context, req *dto.ProductCreateRequest) (*entity.Product, error) {
 	product := &entity.Product{
 		Name:        req.Name,
+		SkuCode:     req.SkuCode,    // Ditambahkan
+		SellerName:  req.SellerName, // Ditambahkan
 		CategoryID:  int(req.CategoryID),
 		ProviderID:  int64(req.ProviderID),
 		Status:      entity.CatStatus(req.Status),
+		Stock:       req.Stock,     // Ditambahkan
+		BasePrice:   req.BasePrice, // Ditambahkan
 		Description: req.Description,
 		ImgUrl:      req.ImgURL,
+		StartOff:    req.StartOff, // Ditambahkan (Asumsi tipe data di entity.Product sesuai, misal string atau time.Time)
+		EndOff:      req.EndOff,   // Ditambahkan (Asumsi tipe data di entity.Product sesuai)
 	}
 
 	if err := p.repo.Create(ctx, product); err != nil {

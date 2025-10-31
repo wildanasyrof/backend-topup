@@ -37,3 +37,21 @@ func CalcMeta(total, page, limit int) Meta {
 	tp := int(math.Ceil(float64(total) / float64(limit)))
 	return Meta{Page: page, Limit: limit, Total: total, TotalPage: tp}
 }
+
+func ILike(cols []string, q string) func(*gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		if q == "" {
+			return db
+		}
+		like := "%" + q + "%"
+		cond := db
+		for i, col := range cols {
+			if i == 0 {
+				cond = db.Where(col+" ILIKE ?", like)
+			} else {
+				cond = cond.Or(col+" ILIKE ?", like)
+			}
+		}
+		return cond
+	}
+}
