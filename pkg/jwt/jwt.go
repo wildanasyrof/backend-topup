@@ -11,7 +11,7 @@ import (
 type JWTService interface {
 	GenerateAccessToken(id uint64, role string) (string, error)
 	// GenerateRefreshToken(userID uuid.UUID) (string, error)
-	// GetRefreshTokenDuration() time.Duration
+	GetRefreshTokenDuration() time.Duration
 	ValidateToken(token string) (uint64, string, error)
 }
 

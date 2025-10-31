@@ -24,7 +24,7 @@ func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
 
 	app.Static("/uploads", cfg.Server.UploadDir)
 
-	AuthRoutes(app.Group("/auth"), di.AuthHandler)
+	AuthRoutes(app.Group("/auth"), di.AuthHandler) // <-- Rute /auth
 
 	menu := app.Group("/menus")
 	MenuRoutes(menu, di.MenuHandler, di)
@@ -33,6 +33,13 @@ func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
 	me := app.Group("/me")
 	me.Use(middleware.Auth(di.Jwt, "admin", "user"))
 	UserRoutes(me, di.UserHandler)
+
+	// --- TAMBAHKAN INI ---
+	// Grup /sessions untuk manajemen sesi (remote logout)
+	sessions := app.Group("/sessions")
+	sessions.Use(middleware.Auth(di.Jwt, "admin", "user")) // Wajib login
+	SessionRoutes(sessions, di)
+	// ---------------------
 
 	settings := app.Group("/settings")
 	settings.Use(middleware.Auth(di.Jwt, "admin"))

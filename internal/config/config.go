@@ -23,6 +23,7 @@ type ServerConfig struct {
 	RequestTimeOut int
 	Env            string
 	UploadDir      string
+	CookieDomain   string
 }
 
 // GoogleOauthConfig holds Google OAuth specific configuration
@@ -101,10 +102,11 @@ func LoadConfig() (*Config, error) {
 
 	cfg := &Config{
 		Server: ServerConfig{
-			Port:           getEnv("PORT", "8080"), // Default to 8080 if not set
+			Port:           getEnv("PORT", "8080"),
 			RequestTimeOut: requestTimeOut,
 			Env:            getEnv("ENV", "development"),
 			UploadDir:      getEnv("UPLOAD_DIR", "./uploads"),
+			CookieDomain:   getEnv("COOKIE_DOMAIN", "localhost"), // <--- TAMBAHKAN INI
 		},
 		Db: DatabaseConfig{
 			Host:     getEnv("DB_HOST", "127.0.0.1"),

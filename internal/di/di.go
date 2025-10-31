@@ -37,6 +37,7 @@ type DI struct {
 	ProductHandler        *handler.ProductHandler
 	PriceHandler          *handler.PriceHandler
 	OrderHandler          *handler.OrderHandler
+	SessionHandler        *handler.SessionHandler // <--- TAMBAHKAN
 }
 
 func InitDI(cfg *config.Config) *DI {
@@ -49,11 +50,16 @@ func InitDI(cfg *config.Config) *DI {
 	devStore := oauth.NewDevStore(5 * time.Minute)
 	oauth := oauth.NewGoogleOauthPkg(cfg)
 
+	// --- REPO BARU ---
+	sessionRepo := repository.NewSessionRepository(DB) // <--- TAMBAHKAN
+
 	userRepo := repository.NewUserRepository(DB)
-	authService := service.NewAuthService(userRepo, jwt)
+	// --- MODIFIKASI AUTH SERVICE ---
+	authService := service.NewAuthService(userRepo, sessionRepo, jwt) // <--- Inject sessionRepo
 	userService := service.NewUserService(userRepo)
 	userHandler := handler.NewUserHandler(userService, validator)
-	authHandler := handler.NewAuthHandler(authService, userService, *oauth, devStore, validator)
+	// --- MODIFIKASI AUTH HANDLER ---
+	authHandler := handler.NewAuthHandler(authService, userService, *oauth, devStore, validator, cfg) // <--- Inject cfg
 
 	menuRepo := repository.NewMenuRepository(DB)
 	menuService := service.NewMenuService(menuRepo)
@@ -96,6 +102,10 @@ func InitDI(cfg *config.Config) *DI {
 	orderService := service.NewOrderService(orderRepository, logger, userRepo, priceRepository)
 	orderHandler := handler.NewOrderHandler(orderService, validator)
 
+	// --- SERVICE & HANDLER BARU ---
+	sessionService := service.NewSessionService(sessionRepo)    // <--- TAMBAHKAN
+	sessionHandler := handler.NewSessionHandler(sessionService) // <--- TAMBAHKAN
+
 	return &DI{
 		Logger:                logger,
 		DB:                    DB,
@@ -116,6 +126,7 @@ func InitDI(cfg *config.Config) *DI {
 		ProductHandler:        productHandler,
 		PriceHandler:          priceHandler,
 		OrderHandler:          orderHandler,
+		SessionHandler:        sessionHandler, // <--- TAMBAHKAN
 	}
 }
 
