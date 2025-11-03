@@ -12,7 +12,12 @@ import (
 )
 
 func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
-	app.Use(cors.New())
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     "http://localhost:5173", // <-- URL Frontend Anda
+		AllowCredentials: true,                    // <-- WAJIB untuk cookie
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS",
+	}))
 	app.Use(requestid.New(requestid.Config{
 		Header:     "X-Request-ID",
 		ContextKey: "requestid",
@@ -30,6 +35,8 @@ func SetupRouter(app *fiber.App, di *di.DI, cfg *config.Config) {
 	MenuRoutes(menu, di.MenuHandler, di)
 
 	app.Get("/menu", di.MenuHandler.GetAll)
+	app.Get("/categories", di.CategoryHandler.GetAll)
+	app.Get("/categories/:slug", di.CategoryHandler.GetBySlug)
 	me := app.Group("/me")
 	me.Use(middleware.Auth(di.Jwt, "admin", "user"))
 	UserRoutes(me, di.UserHandler)

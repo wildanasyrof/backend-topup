@@ -54,7 +54,7 @@ func (h *AuthHandler) setRefreshTokenCookie(c *fiber.Ctx, session *entity.UserSe
 		Value:    session.ID.String(),
 		Expires:  session.ExpiresAt,
 		HTTPOnly: true,
-		SameSite: "Strict", // Melindungi dari CSRF
+		SameSite: "Lax", // Melindungi dari CSRF
 		// 'Secure: true' WAJIB di produksi (HTTPS)
 		Secure: h.cfg.Server.Env != "development",
 		Path:   "/auth", // Hanya kirim cookie ke endpoint /auth/*
@@ -70,7 +70,7 @@ func (h *AuthHandler) clearRefreshTokenCookie(c *fiber.Ctx) {
 		Value:    "",
 		Expires:  time.Now().Add(-time.Hour), // Set kedaluwarsa di masa lalu
 		HTTPOnly: true,
-		SameSite: "Strict",
+		SameSite: "Lax",
 		Secure:   h.cfg.Server.Env != "development",
 		Path:     "/auth",
 		Domain:   h.cfg.Server.CookieDomain,
